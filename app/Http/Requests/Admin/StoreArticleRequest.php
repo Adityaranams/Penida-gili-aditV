@@ -46,7 +46,6 @@ class StoreArticleRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:200'],
-            'slug' => ['nullable', 'string', 'max:200', 'regex:/^[a-z0-9-]+$/', Rule::unique('articles', 'slug')->ignore($articleId)],
             'excerpt' => ['required', 'string', 'max:500'],
             'meta_title' => ['nullable', 'string', 'max:70'],
             'meta_description' => ['nullable', 'string', 'max:160'],
@@ -69,6 +68,9 @@ class StoreArticleRequest extends FormRequest
             }],
             'author_name' => ['nullable', 'string', 'max:120', Rule::requiredIf(fn () => $this->input('author_id') === 'new' || blank($this->input('author_id')))],
             'author_role' => ['nullable', 'string', 'max:120'],
+            'author_credential' => ['nullable', 'string', 'max:80'],
+            'author_bio' => ['nullable', 'string', 'max:1000'],
+            'author_photo' => ['nullable', 'image', 'max:4096'],
             'read_time_minutes' => ['nullable', 'integer', 'min:1', 'max:60'],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['string', 'max:40'],

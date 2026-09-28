@@ -37,7 +37,7 @@
                     'image'       => $activity['image_url'],
                     'meta'        => $activity['meta'],
                     'price'       => $activity['price_label'],
-                    'href'        => route('activities.show', \Illuminate\Support\Str::slug($activity['name'])),
+                    'href'        => route('activities.show', $activity),
                 ])
             @endforeach
         </div>
@@ -58,7 +58,7 @@
                     'image'       => $activity['image_url'],
                     'meta'        => $activity['meta'],
                     'price'       => $activity['price_label'],
-                    'href'        => route('activities.show', \Illuminate\Support\Str::slug($activity['name'])),
+                    'href'        => route('activities.show', $activity),
                 ])
             @endforeach
         </div>

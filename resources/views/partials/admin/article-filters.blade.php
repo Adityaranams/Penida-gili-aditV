@@ -1,20 +1,16 @@
 {{-- Figma 1:9663 — article "Filter & Search Toolbar Card": search left; Author / Category / Status
-     labelled pills plus reset on the right; an "Active Filters" chip row underneath. --}}
+     labelled pills plus reset on the right. --}}
 @props(['action', 'filters' => [], 'authors' => [], 'categories' => [], 'statuses' => []])
 
 @php
-    $pill = 'flex items-center gap-[8px] rounded-[12px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] px-[13px] py-[9px]';
-    $select = 'appearance-none bg-transparent pr-[29px] font-jakarta text-[14px] font-semibold leading-[20px] text-editorial-ink focus:outline-none';
-    $chevron = 'pointer-events-none absolute right-0 top-1/2 size-[21px] -translate-y-1/2';
-    $active = array_filter([
-        'author' => filled($filters['author'] ?? null) ? 'Author: '.$filters['author'] : null,
-        'category' => 'Category: '.($filters['category'] ?? 'All'),
-        'status' => filled($filters['status'] ?? null) ? 'Status: '.($statuses[$filters['status']] ?? $filters['status']) : 'Status: Published & Active',
-    ]);
-    $without = fn ($key) => $action.'?'.http_build_query(array_filter(collect($filters)->except($key)->all()));
+    $pill = 'flex cursor-pointer items-center gap-[8px] rounded-[12px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] px-[13px] py-[9px]'
+        .' transition-[border-color,background-color,box-shadow] duration-200 ease-smooth hover:border-editorial/50 hover:bg-[#eef4f8]'
+        .' focus-within:border-editorial focus-within:bg-surface focus-within:shadow-[0_0_0_3px_rgba(0,94,161,0.12)]';
+    $select = 'cursor-pointer appearance-none bg-transparent pr-[29px] font-jakarta text-[14px] font-semibold leading-[20px] text-editorial-ink focus:outline-none';
+    $chevron = 'pointer-events-none absolute right-0 top-1/2 size-[21px] -translate-y-1/2 transition-transform duration-200 ease-smooth';
 @endphp
 
-<form action="{{ $action }}" method="get" class="flex flex-col gap-[16px]">
+<form action="{{ $action }}" method="get">
     <div class="flex flex-wrap items-center justify-between gap-[16px]">
         <label class="relative block w-[770px] max-w-full">
             <span class="sr-only">Search</span>
@@ -66,26 +62,18 @@
                 </span>
             </label>
 
+            {{-- Appears only once rows are ticked; posts to the bulk form outside this one. --}}
+            @if ($bulkDelete ?? false)
+                <x-admin.bulk-delete-button class="h-[36px] rounded-[12px] px-[16px] text-[14px]" />
+            @endif
+
             {{-- Reset --}}
             <a href="{{ $action }}" aria-label="Reset filters"
-               class="flex size-[29px] items-center justify-center rounded-[12px] transition-colors duration-300 hover:bg-[#f1f4f6]">
+               class="flex size-[29px] items-center justify-center rounded-[12px] transition-[background-color,transform] duration-200 ease-smooth
+                      hover:bg-[#f1f4f6] hover:-rotate-45 active:scale-95">
                 <img src="{{ asset('images/icons/admin/article/filter-reset.svg') }}" alt="" class="h-[15.4px] w-[13.3px]">
             </a>
         </div>
     </div>
 
-    {{-- Active Badges row (1:9702) --}}
-    <div class="flex flex-wrap items-center gap-[8px] border-t border-[rgba(192,199,211,0.2)] pt-[9px]">
-        <span class="font-jakarta text-[12px] font-medium leading-[16px] text-[#525c6f]">Active Filters:</span>
-        @foreach ($active as $key => $chip)
-            @php $blue = $key === 'status'; @endphp
-            <span @class(['flex items-center gap-[6px] rounded-full px-[10px] py-[4px] font-jakarta text-[12px] font-medium leading-[16px]', 'bg-[#d2e4ff] text-[#001d37]' => $blue, 'bg-[#d5e2e9] text-[#58646a]' => ! $blue])>
-                {{ $chip }}
-                <a href="{{ $without($key) }}" aria-label="Remove {{ $chip }}" class="flex items-center pb-[2px]">
-                    <img src="{{ asset('images/icons/admin/article/'.($blue ? 'chip-close-blue.svg' : 'chip-close.svg')) }}" alt="" class="size-[8.2px]">
-                </a>
-            </span>
-        @endforeach
-        <a href="{{ $action }}" class="pl-[8px] font-jakarta text-[12px] font-medium leading-[16px] text-editorial hover:underline">Clear all</a>
-    </div>
 </form>

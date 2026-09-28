@@ -22,12 +22,25 @@ trait HasSlug
 
     abstract protected function slugSource(): string;
 
+    /**
+     * The slug this record should carry for the given title — unchanged when the
+     * title still produces the one it already has, so existing links survive.
+     */
+    public function slugFor(?string $title): string
+    {
+        $base = Str::slug((string) $title);
+
+        return $this->slug === $base || str_starts_with((string) $this->slug, $base.'-')
+            ? $this->slug
+            : $this->uniqueSlug($base);
+    }
+
     protected function uniqueSlug(string $base): string
     {
         $slug = $base ?: Str::random(8);
         $i = 2;
 
-        while (static::query()->where('slug', $slug)->exists()) {
+        while (static::query()->whereKeyNot($this->getKey())->where('slug', $slug)->exists()) {
             $slug = "{$base}-{$i}";
             $i++;
         }

@@ -81,9 +81,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/article', [Admin\ArticleController::class, 'index'])->name('articles');
         Route::get('/article/create', [Admin\ArticleController::class, 'create'])->name('articles.create');
+        Route::post('/article/image', [Admin\ArticleController::class, 'uploadImage'])->name('articles.image');
         Route::post('/article', [Admin\ArticleController::class, 'store'])->name('articles.store');
         Route::get('/article/{article}/edit', [Admin\ArticleController::class, 'edit'])->name('articles.edit');
         Route::put('/article/{article}', [Admin\ArticleController::class, 'update'])->name('articles.update');
+        Route::delete('/article', [Admin\ArticleController::class, 'bulkDestroy'])->name('articles.bulk-destroy');
         Route::delete('/article/{article}', [Admin\ArticleController::class, 'destroy'])->name('articles.destroy');
 
         Route::get('/report', [Admin\ReportController::class, 'index'])->name('report');

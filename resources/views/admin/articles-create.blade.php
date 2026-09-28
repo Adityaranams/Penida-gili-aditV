@@ -55,14 +55,10 @@
             <div class="flex flex-col gap-[24px]">
                 {{-- 1. Article Core Editorial (1:8096) --}}
                 <section class="{{ $card }} p-[33px]">
-                    <div class="{{ $head }} justify-between">
+                    <div class="{{ $head }}">
                         <span class="flex items-center gap-[10px]">
                             <span class="{{ $tile }}"><img src="{{ $icon('editor-core.svg') }}" alt="" class="size-[15px]"></span>
                             <h2 class="{{ $h2 }}">Article Core Editorial</h2>
-                        </span>
-                        <span class="flex items-center gap-[6px] rounded-full bg-[#d5e2e9] px-[12px] py-[4px] font-jakarta text-[12px] font-semibold leading-[16px] text-[#58646a]">
-                            <img src="{{ $icon('read-clock.svg') }}" alt="" class="size-[11.7px]">
-                            <span data-read-time>{{ $article->read_time_minutes ?? 5 }}</span> min read
                         </span>
                     </div>
 
@@ -124,15 +120,54 @@
                             </span>
                             @error('author_id') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
 
+                            {{-- Shown when "+ Add new author…" is picked; the same fields update the
+                                 chosen author otherwise, and they fill the byline and author card. --}}
+                            @php $selected = $authors->firstWhere('id', (int) $currentAuthor); @endphp
+
                             <div class="mt-[4px] grid [&>*]:min-w-0 gap-[10px] rounded-[8px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] p-[10px]" data-author-new @if ($currentAuthor !== 'new' && ! ($authors->isEmpty() && blank($currentAuthor))) hidden @endif>
                                 <div class="flex flex-col gap-[4px]">
                                     <label for="article-author" class="font-jakarta text-[11px] font-semibold text-editorial-body">Author Name <span class="text-[#ba1a1a]">*</span></label>
                                     <input id="article-author" name="author_name" value="{{ old('author_name') }}" placeholder="Capt. Wayan Sudira" class="{{ $input }} bg-surface py-[9px] text-[12px] leading-[16px]">
                                     @error('author_name') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
                                 </div>
+                            </div>
+
+                            {{-- Author profile: what the reader sees under the article. --}}
+                            <div class="mt-[8px] grid [&>*]:min-w-0 gap-[10px] rounded-[8px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] p-[10px]">
+                                <div class="flex items-center gap-[12px]">
+                                    <span class="flex size-[48px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#d5e2e9] font-jakarta text-[15px] font-bold text-[#58646a]">
+                                        @if ($selected?->photo_url)
+                                            <img src="{{ $selected->photo_url }}" alt="" class="size-full object-cover">
+                                        @else
+                                            {{ $selected?->initials ?? '—' }}
+                                        @endif
+                                    </span>
+
+                                    <label class="flex-1">
+                                        <span class="block pb-[4px] font-jakarta text-[11px] font-semibold text-editorial-body">Profile Photo</span>
+                                        <input type="file" name="author_photo" accept="image/*"
+                                               class="w-full font-jakarta text-[12px] text-editorial-body file:mr-[8px] file:rounded-[6px] file:border-0 file:bg-[#e5eaee] file:px-[10px] file:py-[5px] file:font-jakarta file:text-[12px] file:text-editorial-ink">
+                                        @error('author_photo') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
+                                    </label>
+                                </div>
+
                                 <div class="flex flex-col gap-[4px]">
                                     <label for="article-author-role" class="font-jakarta text-[11px] font-semibold text-editorial-body">Author Role / Title</label>
-                                    <input id="article-author-role" name="author_role" value="{{ old('author_role') }}" placeholder="Master Mariner" class="{{ $input }} bg-surface py-[9px] text-[12px] leading-[16px]">
+                                    <input id="article-author-role" name="author_role" value="{{ old('author_role', $selected?->role) }}" placeholder="Master Mariner"
+                                           class="{{ $input }} bg-surface py-[9px] text-[12px] leading-[16px]">
+                                </div>
+
+                                <div class="flex flex-col gap-[4px]">
+                                    <label for="article-author-credential" class="font-jakarta text-[11px] font-semibold text-editorial-body">Credential Badge</label>
+                                    <input id="article-author-credential" name="author_credential" value="{{ old('author_credential', $selected?->credential) }}" placeholder="ANT-IV Certified"
+                                           class="{{ $input }} bg-surface py-[9px] text-[12px] leading-[16px]">
+                                </div>
+
+                                <div class="flex flex-col gap-[4px]">
+                                    <label for="article-author-bio" class="font-jakarta text-[11px] font-semibold text-editorial-body">Short Bio</label>
+                                    <textarea id="article-author-bio" name="author_bio" rows="4" placeholder="A sentence or two about the author, shown in the card under the article."
+                                              class="{{ $input }} resize-y bg-surface py-[9px] text-[12px] leading-[16px]">{{ old('author_bio', $selected?->bio) }}</textarea>
+                                    <span class="font-jakarta text-[11px] leading-[16px] text-editorial-body">Leave empty to hide the author card.</span>
                                 </div>
                             </div>
                         </div>
@@ -141,42 +176,90 @@
                 </section>
 
                 {{-- 2. Rich Text Content Editor (1:8147): toolbar strip mirrors the design; paragraphs are stored as plain text --}}
-                <section class="{{ $card }} overflow-hidden" data-body-editor>
-                    <div class="flex flex-wrap items-center gap-[6px] border-b border-[#ebeef0] bg-[#f1f4f6] px-[16px] pb-[11px] pt-[10px]" aria-hidden="true">
-                        <span class="flex items-center gap-[2px] rounded-[8px] border border-[#c0c7d3] bg-surface p-[5px]">
-                            <span class="rounded-[4px] p-[6px] font-jakarta text-[12px] font-bold tracking-[-0.3px] text-editorial-ink">H2</span>
-                            <span class="rounded-[4px] p-[6px] font-jakarta text-[12px] font-bold tracking-[-0.3px] text-editorial-ink">H3</span>
-                        </span>
-                        <span class="flex items-center gap-[2px] rounded-[8px] border border-[#c0c7d3] bg-surface p-[5px]">
-                            <span class="p-[6px]"><img src="{{ $icon('rte-bold.svg') }}" alt="" class="h-[9.3px] w-[7px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-italic.svg') }}" alt="" class="h-[9.3px] w-[8.7px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-strike.svg') }}" alt="" class="h-[6.7px] w-[13.3px]"></span>
-                        </span>
-                        <span class="flex items-center gap-[2px] rounded-[8px] border border-[#c0c7d3] bg-surface p-[5px]">
-                            <span class="p-[6px]"><img src="{{ $icon('rte-ul.svg') }}" alt="" class="h-[8px] w-[11.3px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-ol.svg') }}" alt="" class="h-[10.7px] w-[12px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-quote.svg') }}" alt="" class="h-[13.3px] w-[12px]"></span>
-                        </span>
-                        <span class="flex items-center gap-[2px] rounded-[8px] border border-[#c0c7d3] bg-surface p-[5px]">
-                            <span class="p-[6px]"><img src="{{ $icon('rte-image.svg') }}" alt="" class="size-[12px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-link.svg') }}" alt="" class="size-[12px]"></span>
-                            <span class="p-[6px]"><img src="{{ $icon('rte-table.svg') }}" alt="" class="h-[8px] w-[13.3px]"></span>
-                        </span>
+                <section class="{{ $card }} overflow-hidden" data-body-editor data-editor>
+                    @php
+                        $rte = 'flex size-[32px] items-center justify-center rounded-[6px] text-editorial-ink transition-colors hover:bg-[#e5eaee] aria-pressed:bg-editorial/15 aria-pressed:text-editorial';
+                        $stroke = 'size-[17px]';
+                    @endphp
+
+                    {{-- Toolbar: undo/redo, a block-format picker, then the inline marks. --}}
+                    <div class="flex flex-wrap items-center gap-[4px] border-b border-[#ebeef0] bg-[#f1f4f6] px-[16px] pb-[9px] pt-[8px]">
+                        <button type="button" data-editor-command="undo" title="Undo" aria-label="Undo" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>
+                            </svg>
+                        </button>
+                        <button type="button" data-editor-command="redo" title="Redo" aria-label="Redo" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>
+                            </svg>
+                        </button>
+
+                        <span class="mx-[6px] h-[20px] w-px bg-[#d7dde2]"></span>
+
+                        {{-- Pressing an active heading again turns the line back into a paragraph. --}}
+                        <button type="button" data-editor-command="formatBlock" data-editor-value="h2" title="Heading 2"
+                                class="{{ $rte }} w-[38px] font-jakarta text-[13px] font-bold tracking-[-0.3px]">H2</button>
+                        <button type="button" data-editor-command="formatBlock" data-editor-value="h3" title="Heading 3"
+                                class="{{ $rte }} w-[38px] font-jakarta text-[13px] font-bold tracking-[-0.3px]">H3</button>
+                        <button type="button" data-editor-dropcap title="Drop cap (large first letter)" aria-label="Drop cap"
+                                class="{{ $rte }} w-[38px] font-serif text-[19px] font-bold leading-none">T<span class="align-super text-[10px]">a</span></button>
+
+                        <span class="mx-[6px] h-[20px] w-px bg-[#d7dde2]"></span>
+
+                        <button type="button" data-editor-command="bold" title="Bold" aria-label="Bold" class="{{ $rte }} font-jakarta text-[16px] font-bold">B</button>
+                        <button type="button" data-editor-command="italic" title="Italic" aria-label="Italic" class="{{ $rte }} font-jakarta text-[16px] italic">I</button>
+                        <button type="button" data-editor-command="underline" title="Underline" aria-label="Underline" class="{{ $rte }} font-jakarta text-[16px] underline">U</button>
+
+                        <span class="mx-[6px] h-[20px] w-px bg-[#d7dde2]"></span>
+
+                        <button type="button" data-editor-command="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </button>
+                        <button type="button" data-editor-command="insertOrderedList" title="Numbered list" aria-label="Numbered list" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="M10 6h10M10 12h10M10 18h10"/>
+                                <text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1</text>
+                                <text x="2" y="14.5" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2</text>
+                                <text x="2" y="21" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3</text>
+                            </svg>
+                        </button>
+                        <button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" title="Quote" aria-label="Quote" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="M9.5 6.5c-2.6.7-4.5 3-4.5 5.8V17.5h5.5V12H7.8c0-1.7 1-2.9 2.4-3.3l-.7-2.2Zm9 0c-2.6.7-4.5 3-4.5 5.8V17.5h5.5V12h-2.7c0-1.7 1-2.9 2.4-3.3l-.7-2.2Z"/>
+                            </svg>
+                        </button>
+
+                        <span class="mx-[6px] h-[20px] w-px bg-[#d7dde2]"></span>
+
+                        <button type="button" data-editor-command="createLink" title="Insert link" aria-label="Insert link" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $stroke }}" aria-hidden="true">
+                                <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/>
+                            </svg>
+                        </button>
+                        <button type="button" data-editor-image title="Insert image" aria-label="Insert image" class="{{ $rte }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $stroke }}" aria-hidden="true">
+                                <rect x="3" y="4" width="14" height="14" rx="2"/><path d="m3 14 4-4 5 5"/><circle cx="13" cy="9" r="1.3"/><path d="M19 15v6M22 18h-6"/>
+                            </svg>
+                        </button>
+
                         <span class="ml-auto font-jakarta text-[12px] font-medium leading-[16px] text-editorial-body">Word Count: <span data-word-count class="font-bold text-editorial-ink">0</span></span>
                     </div>
 
+                    <input type="file" accept="image/*" class="sr-only" data-editor-image-input
+                           data-endpoint="{{ route('admin.articles.image') }}">
+
                     <div class="px-[33px] py-[28px]">
                         <label for="article-body" class="sr-only">Article Body</label>
-                        <textarea id="article-body" name="body" rows="18" required placeholder="The Badung Strait has long held legendary status among Indonesian seafarers…"
+                        {{-- The contenteditable is what the admin types in; it mirrors into the
+                             textarea that actually posts, so the field still works without JavaScript. --}}
+                        <div data-editor-surface contenteditable="true" role="textbox" aria-multiline="true" aria-label="Article body" hidden
+                             class="rich-text min-h-[420px] w-full font-jakarta text-[16px] leading-[28px] text-editorial-ink focus:outline-none">{!! \App\Support\RichText::clean(old('body', $article->body), \App\Support\RichText::ALLOWED_ARTICLE) !!}</div>
+
+                        <textarea id="article-body" name="body" rows="18" required data-editor-input placeholder="The Badung Strait has long held legendary status among Indonesian seafarers…"
                                   class="w-full resize-y bg-transparent font-jakarta text-[16px] leading-[28px] text-editorial-ink placeholder:text-editorial-meta focus:outline-none">{{ old('body', $article->body) }}</textarea>
-                        <div data-preview hidden class="flex flex-col gap-[16px] font-jakarta text-[16px] leading-[28px] text-editorial-ink"></div>
-                        <div class="mt-[12px] flex items-center justify-between border-t border-[rgba(192,199,211,0.3)] pt-[12px]">
-                            <span class="font-jakarta text-[12px] leading-[16px] text-editorial-body">Separate paragraphs with a blank line.</span>
-                            <button type="button" data-preview-toggle
-                                    class="rounded-[8px] border border-[rgba(192,199,211,0.5)] bg-surface px-[14px] py-[6px] font-jakarta text-[12px] font-semibold text-editorial-ink transition-colors hover:bg-[#f1f4f6]">
-                                Pratinjau
-                            </button>
-                        </div>
                         @error('body') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
                     </div>
                 </section>
@@ -253,14 +336,15 @@
                     </div>
 
                     <div class="mt-[16px] flex flex-col gap-[16px]">
+                        {{-- The address always follows the title, so there is nothing to type here
+                             and the link on a card can never point at a different slug. --}}
                         <div class="flex flex-col gap-[6px]">
-                            <label for="article-slug" class="{{ $sideLabel }}">URL Permalink Slug</label>
-                            <span class="flex items-center overflow-hidden rounded-[8px] border border-[#c0c7d3] bg-surface">
+                            <span class="{{ $sideLabel }}">URL Permalink</span>
+                            <span class="flex items-center overflow-hidden rounded-[8px] border border-[#c0c7d3] bg-[#f7fafc]">
                                 <span class="border-r border-[#c0c7d3] bg-[#f1f4f6] px-[10px] py-[9px] font-jakarta text-[12px] text-editorial-body">/artikel/</span>
-                                <input id="article-slug" name="slug" value="{{ old('slug', $article->slug) }}" placeholder="nusa-penida-fast-boat-transfers-guide"
-                                       class="w-full bg-transparent px-[10px] py-[9px] font-jakarta text-[12px] font-medium leading-[16px] text-editorial-ink placeholder:font-normal placeholder:text-editorial-meta focus:outline-none">
+                                <span data-permalink class="truncate px-[10px] py-[9px] font-jakarta text-[12px] font-medium leading-[16px] text-editorial-ink">{{ $article->slug ?: 'follows-the-article-title' }}</span>
                             </span>
-                            @error('slug') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
+                            <span class="font-jakarta text-[11px] leading-[16px] text-editorial-body">Generated from the title.</span>
                         </div>
 
                         <div class="flex flex-col gap-[6px]">
@@ -287,7 +371,7 @@
                             <div class="rounded-[8px] border border-[#ebeef0] bg-surface p-[13px]">
                                 <span class="flex items-center gap-[8px]">
                                     <span class="flex size-[24px] items-center justify-center rounded-full bg-[#f1f4f6] font-jakarta text-[12px] font-bold text-editorial-ink">{{ mb_strtoupper(mb_substr($siteHost, 0, 1)) }}</span>
-                                    <span class="truncate font-jakarta text-[11px] leading-[16px] text-editorial-body">{{ $siteHost }} › artikel › <span data-serp-slug>{{ \Illuminate\Support\Str::limit(old('slug', $article->slug) ?: 'your-article', 18) }}</span></span>
+                                    <span class="truncate font-jakarta text-[11px] leading-[16px] text-editorial-body">{{ $siteHost }} › artikel › <span data-serp-slug>{{ \Illuminate\Support\Str::limit($article->slug ?: 'your-article', 18) }}</span></span>
                                 </span>
                                 <span data-serp-title class="mt-[4px] block font-jakarta text-[14px] font-medium leading-[20px] text-[#1a0dab]">{{ old('meta_title', $article->meta_title) ?: (old('title', $article->title) ?: 'Article title') }}</span>
                                 <span data-serp-description class="mt-[2px] line-clamp-3 font-jakarta text-[12px] leading-[16px] text-editorial-body">{{ old('meta_description', $article->meta_description) ?: (old('excerpt', $article->excerpt) ?: 'Meta description preview appears here.') }}</span>

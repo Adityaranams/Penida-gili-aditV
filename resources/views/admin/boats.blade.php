@@ -14,7 +14,7 @@
         action="Add New Boat"
         :action-href="route('admin.boats.create')"
         :columns="['Boat Name', 'Type', 'Capacity', 'Status', 'Actions']"
-        :center-columns="['Status', 'Actions']"
+        :center-columns="['Type', 'Capacity', 'Status', 'Actions']"
         :paginator="$boats"
         :selectable="true">
 
@@ -46,8 +46,8 @@
                         </span>
                     </span>
                 </td>
-                <td class="px-[16px] py-[18px] text-[16px] leading-[24px] text-editorial-body">{{ $boat->type }}</td>
-                <td class="px-[16px] py-[18px] text-[16px] leading-[24px] text-editorial-body">{{ $boat->capacity }} Pax</td>
+                <td class="px-[16px] py-[18px] text-center text-[16px] leading-[24px] text-editorial-body">{{ $boat->type }}</td>
+                <td class="px-[16px] py-[18px] text-center text-[16px] leading-[24px] text-editorial-body">{{ $boat->capacity }} Pax</td>
                 <td class="px-[16px] py-[18px] text-center">
                     <x-admin.status :label="$boat->status->label()" :tone="$boat->status->tone()" />
                 </td>

@@ -212,6 +212,14 @@ class CatalogManagementTest extends TestCase
             ->delete(route('admin.activities.bulk-destroy'), ['ids' => [$activities->first()->id]])
             ->assertRedirect(route('admin.activities'));
         $this->assertCount(1, Activity::query()->get());
+
+        $articles = Article::factory()->count(3)->create();
+        $this->actingAs($this->admin)->get(route('admin.articles'))->assertOk()->assertSee('form="bulk-delete"', false);
+        $this->actingAs($this->admin)
+            ->from(route('admin.articles'))
+            ->delete(route('admin.articles.bulk-destroy'), ['ids' => $articles->take(2)->pluck('id')->all()])
+            ->assertRedirect(route('admin.articles'));
+        $this->assertCount(1, Article::query()->get());
     }
 
     public function test_vessel_listing_filters_by_status_and_search(): void
@@ -695,11 +703,18 @@ class CatalogManagementTest extends TestCase
         Article::factory()->create(['title' => 'Complete Guide to Nusa Penida', 'category' => 'Travel Guides', 'author_name' => 'Capt. Wayan Sudira', 'author_role' => 'Master Mariner', 'views' => 42_500, 'status' => ArticleStatus::Published]);
         Article::factory()->create(['title' => 'Top 7 Snorkeling Spots', 'category' => 'Activities', 'author_name' => 'Dewa Krisna', 'views' => 980, 'status' => ArticleStatus::Draft]);
 
+        // An author with no article yet is still offered as a filter.
+        Author::factory()->create(['name' => 'Ayu Pradnya']);
+
         $this->actingAs($this->admin)->get(route('admin.articles'))
             ->assertOk()
-            ->assertSeeInOrder(['Search by title, keyword, or author...', 'Author:', 'All Authors', 'Category:', 'All Categories', 'Status:', 'All Statuses', 'Active Filters:', 'Category: All', 'Clear all'])
+            ->assertSeeInOrder(['Search by title, keyword, or author...', 'Author:', 'All Authors', 'Ayu Pradnya', 'Category:', 'All Categories', 'Status:', 'All Statuses'])
             ->assertSeeInOrder(['Article Details', 'Category', 'Author & Role', 'Views', 'Published Date', 'Status', 'Quick Actions'])
-            ->assertSee('42.5K')->assertSee('Master Mariner');
+            ->assertSee('42.5K')->assertSee('Master Mariner')
+            // The chip row is gone and scheduling is not a status the console offers.
+            ->assertDontSee('Active Filters:')
+            ->assertDontSee('Clear all')
+            ->assertDontSee('Scheduled');
 
         $this->actingAs($this->admin)->get(route('admin.articles', ['author' => 'Dewa Krisna']))
             ->assertSee('Top 7 Snorkeling Spots')->assertDontSee('Complete Guide to Nusa Penida');
@@ -708,8 +723,33 @@ class CatalogManagementTest extends TestCase
             ->assertSee('Complete Guide to Nusa Penida')->assertDontSee('Top 7 Snorkeling Spots');
 
         $this->actingAs($this->admin)->get(route('admin.articles', ['status' => 'draft']))
-            ->assertSee('Top 7 Snorkeling Spots')->assertDontSee('Complete Guide to Nusa Penida')
-            ->assertSee('Status: Draft');
+            ->assertSee('Top 7 Snorkeling Spots')->assertDontSee('Complete Guide to Nusa Penida');
+    }
+
+    public function test_changing_an_author_updates_the_byline_on_every_article_they_wrote(): void
+    {
+        $author = Author::factory()->create(['name' => 'Adityarana', 'role' => 'Junior Writer']);
+        $first = Article::factory()->create(['title' => 'First Piece', 'author_id' => $author->id, 'author_name' => 'Adityarana', 'author_role' => 'Junior Writer', 'status' => ArticleStatus::Published, 'published_at' => now()->subDay()]);
+        $second = Article::factory()->create(['title' => 'Second Piece', 'author_id' => $author->id, 'author_name' => 'Adityarana', 'author_role' => 'aca', 'status' => ArticleStatus::Published, 'published_at' => now()->subDay()]);
+
+        $author->update(['role' => 'Senior Travel Writer & Island Specialist']);
+
+        // Both articles follow the author record, whatever role was stored when they were saved.
+        $this->assertSame('Senior Travel Writer & Island Specialist', $first->fresh()->author_role);
+        $this->assertSame('Senior Travel Writer & Island Specialist', $second->fresh()->author_role);
+
+        $this->actingAs($this->admin)->get(route('admin.articles'))
+            ->assertOk()
+            ->assertDontSee('Junior Writer')
+            ->assertDontSee('>aca<', false);
+
+        // Renaming the author carries through too, and the filter still finds their work.
+        $author->update(['name' => 'Adit Mahayana']);
+
+        $this->assertSame('Adit Mahayana', $first->fresh()->author_name);
+        $this->actingAs($this->admin)->get(route('admin.articles', ['author' => 'Adit Mahayana']))
+            ->assertSee('First Piece')
+            ->assertSee('Second Piece');
     }
 
     public function test_article_scheduling_requires_a_date_and_drafts_stay_unpublished(): void
@@ -729,6 +769,168 @@ class CatalogManagementTest extends TestCase
         $this->assertSame(2, $article->read_time_minutes);
     }
 
+    public function test_article_body_keeps_headings_quotes_and_safe_links(): void
+    {
+        $body = '<h2>Getting there</h2><p class="drop-cap" style="color:red">Book <strong>early</strong>, <u>always</u>.</p>'
+            .'<blockquote>Rough seas in January.</blockquote>'
+            .'<p><a href="https://example.com" onclick="steal()">Timetable</a> and <a href="javascript:alert(1)">bad</a></p>'
+            .'<script>alert(1)</script>';
+
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), [
+            'title' => 'Crossing Tips', 'excerpt' => 'Short summary', 'category' => 'Boat Tips',
+            'body' => $body, 'author_id' => 'new', 'author_name' => 'Capt. Wayan', 'status' => 'published',
+        ])->assertRedirect(route('admin.articles'));
+
+        $article = Article::query()->sole();
+
+        $this->assertStringContainsString('<h2>Getting there</h2>', $article->body);
+        $this->assertStringContainsString('<p class="drop-cap">', $article->body);
+        $this->assertStringContainsString('<u>always</u>', $article->body);
+        $this->assertStringContainsString('<blockquote>Rough seas in January.</blockquote>', $article->body);
+
+        // A safe link keeps its href; the handler attribute, the javascript: URL and the script all go.
+        $this->assertStringContainsString('<a href="https://example.com"', $article->body);
+        $this->assertStringNotContainsString('onclick', $article->body);
+        $this->assertStringNotContainsString('style=', $article->body);
+        $this->assertStringNotContainsString('javascript:', $article->body);
+        $this->assertStringNotContainsString('<script>', $article->body);
+
+        // Headings are rendered with an id so the table of contents can link to them.
+        $this->get(route('articles.show', $article))
+            ->assertOk()
+            ->assertSee('<h2 id="getting-there">Getting there</h2>', false)
+            ->assertSee('<blockquote>Rough seas in January.</blockquote>', false)
+            ->assertSee('href="#getting-there"', false)
+            ->assertSee('Table of Contents');
+    }
+
+    public function test_sidebar_lists_the_article_headings_and_the_most_read_articles(): void
+    {
+        $author = Author::factory()->create();
+        $article = Article::factory()->create([
+            'status' => ArticleStatus::Published, 'published_at' => now()->subDay(), 'author_id' => $author->id,
+            'content' => null, 'views' => 1,
+            'body' => '<h2>Harbours</h2><p>Text</p><h3>Sanur</h3><p>More</p><h2>Harbours</h2>',
+        ]);
+
+        $quiet = Article::factory()->create(['title' => 'Quiet Read', 'status' => ArticleStatus::Published, 'published_at' => now()->subDay(), 'views' => 2]);
+        $busy = Article::factory()->create(['title' => 'Most Read', 'status' => ArticleStatus::Published, 'published_at' => now()->subDay(), 'views' => 900]);
+        Article::factory()->create(['title' => 'Hidden Draft', 'status' => ArticleStatus::Draft, 'views' => 5000]);
+
+        // Headings become the table of contents; a repeated heading still gets its own anchor.
+        $this->assertSame(
+            [['label' => 'Harbours', 'anchor' => 'harbours', 'level' => 2],
+                ['label' => 'Sanur', 'anchor' => 'sanur', 'level' => 3],
+                ['label' => 'Harbours', 'anchor' => 'harbours-2', 'level' => 2]],
+            $article->toc_items,
+        );
+
+        $this->get(route('articles.show', $article))
+            ->assertOk()
+            ->assertSee('href="#harbours-2"', false)
+            // Popular Articles is ordered by views and skips drafts.
+            ->assertSeeInOrder(['Popular Articles', 'Most Read', 'Quiet Read'])
+            ->assertDontSee('Hidden Draft')
+            ->assertSee(route('articles.show', $busy));
+    }
+
+    public function test_article_body_images_are_uploaded_and_only_safe_sources_are_kept(): void
+    {
+        Storage::fake('public');
+
+        $response = $this->actingAs($this->admin)->post(route('admin.articles.image'), [
+            'image' => UploadedFile::fake()->image('deck.jpg'),
+        ])->assertOk();
+
+        $url = $response->json('url');
+        $this->assertStringContainsString('uploads/articles/', $url);
+
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), [
+            'title' => 'Photo Story', 'excerpt' => 'Short summary', 'category' => 'Boat Tips',
+            'body' => '<p>Deck</p><img src="'.$url.'" alt="Deck" width="900" onerror="x()"><img src="javascript:alert(1)">',
+            'author_id' => 'new', 'author_name' => 'Capt. Wayan', 'status' => 'published',
+        ])->assertRedirect(route('admin.articles'));
+
+        $body = Article::query()->sole()->body;
+
+        // The uploaded photo keeps src and alt only; the javascript: one is dropped entirely.
+        $this->assertStringContainsString('<img src="'.$url.'" alt="Deck">', $body);
+        $this->assertStringNotContainsString('onerror', $body);
+        $this->assertStringNotContainsString('width=', $body);
+        $this->assertStringNotContainsString('javascript:', $body);
+    }
+
+    public function test_article_address_always_follows_the_title(): void
+    {
+        $base = ['excerpt' => 'Short summary', 'category' => 'Boat Tips', 'body' => 'Body text',
+            'author_id' => 'new', 'author_name' => 'Capt. Wayan', 'status' => 'published'];
+
+        // A slug posted by hand is ignored: the address comes from the title.
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), $base + [
+            'title' => 'Crossing Tips', 'slug' => 'something-else',
+        ])->assertRedirect(route('admin.articles'));
+
+        $article = Article::query()->sole();
+        $this->assertSame('crossing-tips', $article->slug);
+        $this->get(route('articles.show', $article))->assertOk();
+
+        // Renaming moves the address with it.
+        $this->actingAs($this->admin)->put(route('admin.articles.update', $article), $base + ['title' => 'Calm Water Crossings'])
+            ->assertRedirect(route('admin.articles'));
+
+        $this->assertSame('calm-water-crossings', $article->fresh()->slug);
+
+        // Saving without renaming keeps the same address.
+        $this->actingAs($this->admin)->put(route('admin.articles.update', $article->fresh()), $base + ['title' => 'Calm Water Crossings']);
+        $this->assertSame('calm-water-crossings', $article->fresh()->slug);
+
+        // A second article with the same title gets its own address rather than clashing.
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), $base + ['title' => 'Calm Water Crossings']);
+        $this->assertSame('calm-water-crossings-2', Article::query()->latest('id')->first()->slug);
+
+        // Every card on the listing points at a page that exists.
+        $this->get(route('articles.index'))->assertOk()->assertSee(route('articles.show', $article->fresh()));
+    }
+
+    public function test_author_profile_is_editable_and_drives_the_byline_and_card(): void
+    {
+        Storage::fake('public');
+
+        $base = ['title' => 'Crossing Tips', 'excerpt' => 'Short summary', 'category' => 'Boat Tips',
+            'body' => 'Body text', 'status' => 'published'];
+
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), $base + [
+            'author_id' => 'new',
+            'author_name' => 'Capt. Wayan Sudira',
+            'author_role' => 'Master Mariner',
+            'author_credential' => 'ANT-IV Certified',
+            'author_bio' => 'Twelve years on the Badung Strait.',
+            'author_photo' => UploadedFile::fake()->image('wayan.jpg'),
+        ])->assertRedirect(route('admin.articles'));
+
+        $author = Author::query()->sole();
+        $this->assertSame('Master Mariner', $author->role);
+        $this->assertSame('ANT-IV Certified', $author->credential);
+        Storage::disk('public')->assertExists($author->photo);
+
+        $this->get(route('articles.show', Article::query()->sole()))
+            ->assertOk()
+            ->assertSee('Written by Capt. Wayan Sudira')
+            ->assertSee('Twelve years on the Badung Strait.')
+            ->assertSee('ANT-IV Certified')
+            ->assertSee($author->photo_url)
+            // The share row is gone.
+            ->assertDontSee('Share:');
+
+        // No portrait and no bio: initials stand in and the card stays hidden.
+        $author->forceFill(['photo' => null, 'bio' => null])->save();
+
+        $this->get(route('articles.show', Article::query()->sole()))
+            ->assertOk()
+            ->assertSee('CW')
+            ->assertDontSee('Twelve years on the Badung Strait.');
+    }
+
     public function test_article_form_renders_and_stores_seo_fields_with_fallbacks(): void
     {
         // Figma 1:8059: editorial card, formatting toolbar, hero image, and the sidebar cards incl. the author form.
@@ -736,17 +938,27 @@ class CatalogManagementTest extends TestCase
             ->assertOk()
             ->assertSeeInOrder([
                 'Save Draft', 'Publish Article',
-                'Article Core Editorial', 'min read', 'Article Title', 'Subtitle / Summary Hook', 'Primary Category', 'Target Reader Segment', 'Author', '+ Add new author…',
+                'Article Core Editorial', 'Article Title', 'Subtitle / Summary Hook', 'Primary Category', 'Target Reader Segment', 'Author', '+ Add new author…',
                 'H2', 'H3', 'Word Count:',
                 'Featured Hero Image', 'Replace Photo', 'Image Caption', 'Descriptive Alt Text (Accessibility & SEO)',
                 'Publishing Settings', 'Publish Immediately', 'Save as Draft',
 
-                'SEO Optimization', 'Score:', 'URL Permalink Slug', 'Meta Title', '/60 chars', 'Meta Description', '/160 chars', 'Live Google SERP Preview',
+                'SEO Optimization', 'Score:', 'URL Permalink', 'Generated from the title.', 'Meta Title', '/60 chars', 'Meta Description', '/160 chars', 'Live Google SERP Preview',
                 'Tags & Taxonomy', 'Type tag and hit Enter...',
             ])
             ->assertDontSee('Schedule for Later')
             ->assertDontSee('Contextual Fast Ticket Desk')
-            ->assertDontSee('Keywords');
+            ->assertDontSee('Keywords')
+            ->assertDontSee('min read')
+            // The toolbar buttons are real controls, not decoration.
+            ->assertSee('data-editor-command="bold"', false)
+            ->assertSee('data-editor-command="underline"', false)
+            ->assertSee('data-editor-command="createLink"', false)
+            ->assertSee('data-editor-command="undo"', false)
+            ->assertSee('data-editor-dropcap', false)
+            ->assertDontSee('data-editor-command="removeFormat"', false)
+            ->assertSee('data-editor-value="blockquote"', false)
+            ->assertSee(route('admin.articles.image'));
 
         $base = ['title' => 'Crossing Tips', 'excerpt' => 'Short summary', 'category' => 'Boat Tips', 'body' => 'Body text', 'author_id' => 'new', 'author_name' => 'Capt. Wayan', 'status' => 'published'];
 

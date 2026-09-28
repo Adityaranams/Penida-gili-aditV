@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ArticleStatus;
 use App\Models\Concerns\HasSlug;
 use App\Support\ImagePath;
+use App\Support\RichText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -43,6 +44,21 @@ class Article extends Model
     public function writer(): BelongsTo
     {
         return $this->belongsTo(Author::class, 'author_id');
+    }
+
+    /*
+     * The byline columns are a snapshot taken when the article was saved. Once an
+     * author record is linked it owns those details, so renaming an author or
+     * changing their role updates every article they wrote.
+     */
+    protected function authorName(): Attribute
+    {
+        return Attribute::get(fn (?string $value) => $this->writer?->name ?? $value);
+    }
+
+    protected function authorRole(): Attribute
+    {
+        return Attribute::get(fn (?string $value) => $this->writer?->role ?? $value);
     }
 
     #[Scope]
@@ -98,6 +114,39 @@ class Article extends Model
         return Attribute::get(fn () => $this->views >= 1000
             ? rtrim(rtrim(number_format($this->views / 1000, 1), '0'), '.').'k views'
             : $this->views.' views');
+    }
+
+    /**
+     * The body as safe HTML with an id on every heading, plus the headings
+     * themselves — what the page renders and what the table of contents links to.
+     *
+     * @return array{html: string, items: list<array{label: string, anchor: string, level: int}>}
+     */
+    protected function bodyOutline(): Attribute
+    {
+        return Attribute::get(fn () => RichText::outline(RichText::clean($this->body, RichText::ALLOWED_ARTICLE)))
+            ->shouldCache();
+    }
+
+    protected function bodyHtml(): Attribute
+    {
+        return Attribute::get(fn () => $this->body_outline['html']);
+    }
+
+    /**
+     * The mobile layout renders the same body, so its headings take an "m-" prefix:
+     * duplicate ids would send every table-of-contents link to the hidden copy.
+     */
+    protected function mobileBodyHtml(): Attribute
+    {
+        return Attribute::get(fn () => RichText::outline(RichText::clean($this->body, RichText::ALLOWED_ARTICLE), 'm-')['html'])
+            ->shouldCache();
+    }
+
+    /** Headings from the body; the seeded long-form articles keep their own list. */
+    protected function tocItems(): Attribute
+    {
+        return Attribute::get(fn () => $this->has_structured_content ? $this->toc : $this->body_outline['items']);
     }
 
     /** Author initials for the console avatar. */

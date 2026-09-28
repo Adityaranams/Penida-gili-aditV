@@ -1,18 +1,13 @@
 {{-- Figma node 1:5965 — "article full" (mobile, 390px). Rendered below lg only; the desktop layout is hidden there. --}}
-@props(['featured', 'articles'])
+@props(['featured', 'articles', 'categories' => [], 'category' => '', 'term' => ''])
 
 @php
-    $mCategories = ['All Articles', 'Travel Guides', 'Nusa Penida Tips', 'Boat Schedules & Safety', 'Hidden Gems'];
     $initials = fn (string $name) => collect(explode(' ', preg_replace('/^Capt(ain)?\.?\s+/i', '', $name)))->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->implode('');
 @endphp
 
 <div class="bg-[#f7fafc] font-jakarta lg:hidden">
     {{-- Header title (1:6010) --}}
     <section data-reveal class="flex flex-col gap-[8px] px-[20px] pb-[16px] pt-[24px]">
-        <span class="inline-flex w-fit items-center gap-[6px] rounded-full bg-[#d5e2e9] px-[12px] py-[4px] text-[12px] font-semibold uppercase leading-[16px] tracking-[0.6px] text-[#111d22]">
-            <img src="{{ asset('images/icons/mobile/article/journal.svg') }}" alt="" class="h-[12.8px] w-[11.7px]">
-            Maritime Journal
-        </span>
         <h1 class="text-[28px] font-bold leading-[36px] tracking-[-0.7px] text-[#181c1e]">Travel Articles &amp; Island Guides</h1>
         <p class="text-[16px] leading-[26px] text-[#414751]">Inspiration, guides, and tips for your fast boat travel and island adventures across Bali &amp; Nusa Penida.</p>
     </section>
@@ -20,25 +15,31 @@
     {{-- Search + filter pills (1:6019) --}}
     <section class="pb-[20px]">
         <form action="{{ route('articles.index') }}" method="get" class="relative px-[20px]">
+            @if ($category)
+                <input type="hidden" name="category" value="{{ $category }}">
+            @endif
             <img src="{{ asset('images/icons/mobile/article/search.svg') }}" alt="" class="pointer-events-none absolute left-[37px] top-1/2 size-[18px] -translate-y-1/2">
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search guides, ports, tips..."
+            <input type="search" name="q" value="{{ $term }}" data-article-search placeholder="Search guides, ports, tips..."
                    class="h-[46px] w-full rounded-[12px] border border-[#c0c7d3] bg-white pl-[44px] pr-[16px] text-[16px] text-[#181c1e] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] placeholder:text-[#717782] focus:border-brand focus:outline-none">
         </form>
 
         <div class="flex gap-[8px] overflow-x-auto px-[20px] pt-[16px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            @foreach ($mCategories as $category)
-                <a href="{{ route('articles.index') }}"
+            @foreach (array_merge([''], $categories) as $option)
+                @php($isActive = $category === $option)
+
+                <a href="{{ route('articles.index', array_filter(['category' => $option, 'q' => $term])) }}" data-article-filter
                    @class([
-                       'shrink-0 whitespace-nowrap rounded-full text-[14px] font-semibold leading-[20px] tracking-[0.7px]',
-                       'bg-[#005ea1] px-[16px] py-[6px] text-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]' => $loop->first,
-                       'border border-[rgba(192,199,211,0.6)] bg-[#f1f4f6] px-[17px] py-[7px] text-[#414751]' => ! $loop->first,
+                       'shrink-0 whitespace-nowrap rounded-full text-[14px] font-semibold leading-[20px] tracking-[0.7px] transition-colors duration-300',
+                       'bg-[#005ea1] px-[16px] py-[6px] text-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]' => $isActive,
+                       'border border-[rgba(192,199,211,0.6)] bg-[#f1f4f6] px-[17px] py-[7px] text-[#414751]' => ! $isActive,
                    ])>
-                    {{ $category }}
+                    {{ $option ?: 'All Articles' }}
                 </a>
             @endforeach
         </div>
     </section>
 
+    <div data-article-results>
     {{-- Featured guide card (1:6039) --}}
     @if ($featured)
     <a href="{{ $featured['href'] }}" data-reveal class="mx-[20px] mb-[24px] block overflow-hidden rounded-[16px] border border-[rgba(192,199,211,0.5)] bg-white p-px shadow-[0px_4px_20px_0px_rgba(0,0,0,0.05)]">
@@ -90,7 +91,7 @@
 
     <div class="flex flex-col gap-[14px] px-[20px] pb-[32px]">
         @foreach ($articles as $index => $article)
-            <a href="{{ route('articles.show', \Illuminate\Support\Str::slug($article['title'])) }}" data-reveal style="--reveal-delay: {{ ($index % 4) * 60 }}ms"
+            <a href="{{ route('articles.show', $article) }}" data-reveal style="--reveal-delay: {{ ($index % 4) * 60 }}ms"
                class="flex items-start gap-[14px] rounded-[12px] border border-[rgba(192,199,211,0.4)] bg-white p-[15px] drop-shadow-[0px_2px_6px_rgba(0,0,0,0.03)]">
                 <div class="relative size-[96px] shrink-0 overflow-hidden rounded-[8px] bg-[#d7dadc]">
                     <img src="{{ $article['image_url'] }}" alt="" class="size-full object-cover">
@@ -122,6 +123,7 @@
                 @include('components.pagination-mobile', ['paginator' => $articles, 'simple' => true])
             </div>
         @endif
+    </div>
     </div>
 
     {{-- Newsletter CTA (1:6170) --}}

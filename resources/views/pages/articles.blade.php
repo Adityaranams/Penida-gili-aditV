@@ -7,7 +7,7 @@
 
 @section('hero')
     {{-- Mobile (< lg) gets its own header + list from the mobile Figma frame. --}}
-    @include('partials.article.mobile-list', ['featured' => $featured, 'articles' => $articles])
+    @include('partials.article.mobile-list', ['featured' => $featured, 'articles' => $articles, 'categories' => $categories, 'category' => $category, 'term' => $term])
 
     <div class="hidden lg:block">
         @include('partials.page-hero', [
@@ -21,8 +21,10 @@
 
 @section('content')
     <div class="hidden lg:block">
-    @include('partials.article.filter-header')
+    @include('partials.article.filter-header', ['categories' => $categories, 'category' => $category, 'term' => $term])
 
+    {{-- Everything the search replaces as you type (resources/js/article-search.js). --}}
+    <div data-article-results>
     @if ($featured)
         @include('partials.article.featured', ['article' => $featured])
     @endif
@@ -38,12 +40,16 @@
             </div>
 
             <p class="text-[15.4px] leading-[20.5px] text-editorial-meta">
-                Showing {{ $articles->firstItem() }}&ndash;{{ $articles->lastItem() }} of {{ $articles->total() }} articles
+                @if ($articles->total())
+                    Showing {{ $articles->firstItem() }}&ndash;{{ $articles->lastItem() }} of {{ $articles->total() }} articles
+                @else
+                    No other articles yet
+                @endif
             </p>
         </div>
 
         <div class="mt-[48px] lg:mt-[114px] grid [&>*]:min-w-0 items-stretch gap-[31px] md:grid-cols-2 xl:grid-cols-3">
-            @foreach ($articles as $index => $article)
+            @forelse ($articles as $index => $article)
                 @include('components.article-card', [
                     'delay'    => ($index % 3) * 90,
                     'title'    => $article['title'],
@@ -53,15 +59,20 @@
                     'date'     => $article['date'],
                     'author'   => $article['author'],
                     'image'    => $article['image_url'],
-                    'href'     => route('articles.show', \Illuminate\Support\Str::slug($article['title'])),
+                    'href'     => route('articles.show', $article),
                 ])
-            @endforeach
+            @empty
+                <p class="md:col-span-2 xl:col-span-3 text-[17.95px] leading-[25.6px] text-editorial-body">
+                    {{ $term ? 'No articles match that search.' : 'More stories are on the way — check back soon.' }}
+                </p>
+            @endforelse
         </div>
 
         <div class="mt-[26px] lg:mt-[63px]">
             @include('components.pagination', ['paginator' => $articles])
         </div>
     </section>
+    </div>
 
     @include('partials.article.newsletter')
     </div>

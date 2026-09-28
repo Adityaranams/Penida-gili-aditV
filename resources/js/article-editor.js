@@ -58,51 +58,18 @@ document.querySelectorAll('[data-keywords]').forEach((root) => {
     render();
 });
 
-// Word count + preview for the article body.
+// Live word count for the article body (the rich-text surface mirrors into the textarea).
 document.querySelectorAll('[data-body-editor]').forEach((root) => {
     const textarea = root.querySelector('textarea');
     const counter = root.querySelector('[data-word-count]');
-    const toggle = root.querySelector('[data-preview-toggle]');
-    const preview = root.querySelector('[data-preview]');
 
     const count = () => {
-        const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+        const words = textarea.value.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
         counter.textContent = words.toLocaleString('en-US');
     };
 
     textarea.addEventListener('input', count);
     count();
-
-    toggle?.addEventListener('click', () => {
-        const showing = !preview.hidden;
-        if (showing) {
-            preview.hidden = true;
-            textarea.hidden = false;
-            toggle.textContent = 'Pratinjau';
-            return;
-        }
-
-        preview.innerHTML = '';
-        textarea.value
-            .split(/\n\s*\n/)
-            .map((p) => p.trim())
-            .filter(Boolean)
-            .forEach((paragraph) => {
-                const el = document.createElement('p');
-                el.textContent = paragraph;
-                preview.appendChild(el);
-            });
-        if (!preview.childElementCount) {
-            const empty = document.createElement('p');
-            empty.className = 'text-editorial-meta';
-            empty.textContent = 'Belum ada isi artikel.';
-            preview.appendChild(empty);
-        }
-
-        preview.hidden = false;
-        textarea.hidden = true;
-        toggle.textContent = 'Tulis';
-    });
 });
 
 // Show the chosen cover image before upload.
@@ -147,12 +114,18 @@ if (articleForm) {
         const title = value('title');
         const metaTitle = value('meta_title');
         const metaDescription = value('meta_description');
-        const slug = value('slug') || slugify(title) || 'your-article';
+        const slug = slugify(title) || 'your-article';
 
         articleForm.querySelectorAll('[data-count-for]').forEach((el) => {
             el.textContent = value(el.dataset.countFor).length;
         });
         q('[data-serp-slug]').textContent = slug.length > 18 ? slug.slice(0, 18) + '…' : slug;
+
+        // The permalink is derived, not typed: keep the preview in step with the title.
+        const permalink = q('[data-permalink]');
+        if (permalink) {
+            permalink.textContent = slug;
+        }
         q('[data-serp-title]').textContent = metaTitle || title || 'Article title';
         q('[data-serp-description]').textContent = metaDescription || value('excerpt') || 'Meta description preview appears here.';
 
@@ -164,19 +137,11 @@ if (articleForm) {
         else if (metaTitle) score += 10;
         if (metaDescription.length >= 100 && metaDescription.length <= 160) score += 25;
         else if (metaDescription) score += 10;
-        if (value('slug') || title) score += 5;
+        if (title) score += 5;
         if (q('[name="hero_alt"]').value.trim()) score += 10;
         q('[data-seo-score]').textContent = score;
     };
-    ['title', 'excerpt', 'slug', 'meta_title', 'meta_description', 'hero_alt'].forEach((n) => q(`[name="${n}"]`).addEventListener('input', syncSeo));
+    ['title', 'excerpt', 'meta_title', 'meta_description', 'hero_alt'].forEach((n) => q(`[name="${n}"]`).addEventListener('input', syncSeo));
     syncSeo();
 
-    const body = q('[name="body"]');
-    const readTime = q('[data-read-time]');
-    const syncReadTime = () => {
-        const words = body.value.trim().split(/\s+/).filter(Boolean).length;
-        readTime.textContent = Math.max(1, Math.ceil(words / 200));
-    };
-    body.addEventListener('input', syncReadTime);
-    if (body.value.trim()) syncReadTime();
 }

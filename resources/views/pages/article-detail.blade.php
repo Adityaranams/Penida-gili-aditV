@@ -35,7 +35,7 @@
                 <li aria-hidden="true"><img src="{{ asset('images/icons/article-detail/chevron.svg') }}" alt="" class="h-[10.3px] w-[6.4px]"></li>
                 <li><a href="{{ route('articles.index') }}" class="text-editorial-body transition-colors hover:text-editorial">{{ $article['category'] }}</a></li>
                 <li aria-hidden="true"><img src="{{ asset('images/icons/article-detail/chevron.svg') }}" alt="" class="h-[10.3px] w-[6.4px]"></li>
-                <li aria-current="page" class="font-medium text-editorial">Complete Guide to Nusa Penida Fast Boat Transfers</li>
+                <li aria-current="page" class="font-medium text-editorial">{{ $article['title'] }}</li>
             </ol>
         </nav>
 
@@ -64,36 +64,24 @@
             <p data-reveal style="--reveal-delay: 150ms"
                class="mt-[20.7px] pb-[10px] text-[23.3px] leading-[37.8px] text-editorial-body">{{ $article['subtitle'] }}</p>
 
-            {{-- Figma node 1:2422 — author bar + share --}}
-            <div data-reveal class="mt-[20.7px] flex flex-wrap items-center justify-between gap-6 border-t border-[#e5e9eb] pt-[32.3px]">
+            {{-- Figma node 1:2422 — byline. The portrait comes from the author record;
+                 without one the reader sees their initials. --}}
+            <div data-reveal class="mt-[20.7px] flex flex-wrap items-center gap-6 border-t border-[#e5e9eb] pt-[32.3px]">
                 <div class="flex items-center gap-[18px]">
-                    <span class="relative">
-                        <span class="block size-[62px] overflow-hidden rounded-full bg-editorial-rule ring-[2.6px] ring-[#d2e4ff]">
-                            <img src="{{ asset('images/articles/detail/author-avatar.png') }}" alt="{{ $article['author'] }}" class="size-full object-cover">
-                        </span>
-                        <span class="absolute -bottom-[5px] -right-[5px] flex size-[25.9px] items-center justify-center rounded-full bg-editorial">
-                            <img src="{{ asset('images/icons/article-detail/verified.svg') }}" alt="" class="h-[13.6px] w-[14.2px]">
-                        </span>
+                    <span class="flex size-[62px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#d5e2e9] text-[22px] font-bold text-[#58646a] ring-[2.6px] ring-[#d2e4ff]">
+                        @if ($article->writer?->photo_url)
+                            <img src="{{ $article->writer->photo_url }}" alt="{{ $article['author'] }}" class="size-full object-cover">
+                        @else
+                            {{ $article->writer?->initials ?? mb_strtoupper(mb_substr($article['author'], 0, 1)) }}
+                        @endif
                     </span>
 
                     <span>
                         <span class="block text-[20.7px] font-semibold leading-[31px] text-editorial-ink">Written by {{ $article['author'] }}</span>
-                        <span class="flex items-center gap-[5px] text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial-body">
-                            {{ $article['author_role'] }}
-                            <img src="{{ asset('images/icons/article-detail/shield.svg') }}" alt="" class="h-[15.1px] w-[12.1px]">
-                        </span>
+                        @if (filled($article['author_role']))
+                            <span class="block text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial-body">{{ $article['author_role'] }}</span>
+                        @endif
                     </span>
-                </div>
-
-                <div class="flex items-center gap-[10px]">
-                    <span class="pr-[5px] text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial-body">Share:</span>
-                    @foreach (['share-1.svg', 'share-2.svg', 'share-3.svg', 'share-4.svg'] as $icon)
-                        <a href="#" aria-label="Share this article"
-                           class="flex size-[46.5px] items-center justify-center rounded-full bg-[#f1f4f6]
-                                  transition-transform duration-300 ease-smooth hover:-translate-y-1">
-                            <img src="{{ asset('images/icons/article-detail/'.$icon) }}" alt="" class="size-[19.4px] object-contain">
-                        </a>
-                    @endforeach
                 </div>
             </div>
         </header>
@@ -101,27 +89,25 @@
         {{-- Figma node 1:2453 — hero image with caption --}}
         <figure data-reveal class="relative mt-[41px] overflow-hidden rounded-editorial shadow-editorial">
             <button type="button" class="block w-full cursor-zoom-in"
-                    data-lightbox="{{ asset('images/articles/detail/hero-fastboat.png') }}" data-lightbox-alt="{{ $article['hero_caption'] }}">
-                <img src="{{ asset('images/articles/detail/hero-fastboat.png') }}" alt="{{ $article['hero_caption'] }}"
+                    data-lightbox="{{ $article['image_url'] }}" data-lightbox-alt="{{ $article['hero_alt'] ?: $article['title'] }}">
+                <img src="{{ $article['image_url'] }}" alt="{{ $article['hero_alt'] ?: $article['title'] }}"
                      class="h-[260px] lg:h-[620px] w-full object-cover">
             </button>
 
             <span class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(24,28,30,0.6)] to-transparent" aria-hidden="true"></span>
 
-            <figcaption class="absolute inset-x-[31px] bottom-[20px] flex flex-wrap items-end justify-between gap-4">
-                <span class="text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-white opacity-90">{{ $article['hero_caption'] }}</span>
-                <span class="flex items-center gap-[8px] rounded-[8px] bg-[rgba(45,49,51,0.7)] px-[15.5px] py-[5px] backdrop-blur-[8px]">
-                    <img src="{{ asset('images/icons/article-detail/gallery.svg') }}" alt="" class="h-[13.6px] w-[15.1px]">
-                    <span class="text-[15.5px] leading-[23.3px] text-[#f7fafc]">Maritime Fleet Gallery</span>
-                </span>
-            </figcaption>
+            @if (filled($article['hero_caption']))
+                <figcaption class="absolute inset-x-[31px] bottom-[20px]">
+                    <span class="text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-white opacity-90">{{ $article['hero_caption'] }}</span>
+                </figcaption>
+            @endif
         </figure>
 
         {{-- Figma node 1:2464 — 2 columns --}}
         <div class="mt-[41px] grid [&>*]:min-w-0 gap-[41px] lg:grid-cols-[minmax(0,952fr)_minmax(0,455fr)]">
             @include('partials.article.detail-body', ['article' => $article])
 
-            @include('partials.article.detail-sidebar', ['article' => $article])
+            @include('partials.article.detail-sidebar', ['article' => $article, 'popular' => $popular])
         </div>
 
         {{-- Figma node 1:2788 — related articles --}}

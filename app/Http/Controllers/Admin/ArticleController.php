@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreArticleRequest;
 use App\Models\Article;
 use App\Models\Author;
+use App\Support\RichText;
 use App\Support\Uploads;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ArticleController extends Controller
@@ -23,8 +26,12 @@ class ArticleController extends Controller
     public function index(Request $request): View
     {
         $articles = Article::query()
+            ->with('writer')
             ->search($request->string('q')->value())
-            ->when($request->filled('author'), fn ($q) => $q->where('author_name', $request->string('author')->value()))
+            // Match the author record when there is one, falling back to the stored byline.
+            ->when($request->filled('author'), fn ($q) => $q->where(fn ($w) => $w
+                ->whereHas('writer', fn ($a) => $a->where('name', $request->string('author')->value()))
+                ->orWhere(fn ($x) => $x->whereNull('author_id')->where('author_name', $request->string('author')->value()))))
             ->when($request->filled('category'), fn ($q) => $q->where('category', $request->string('category')->value()))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->value()))
             ->latest('published_at')
@@ -35,8 +42,19 @@ class ArticleController extends Controller
         return view('admin.articles', [
             'articles' => $articles,
             'filters' => $request->only(['q', 'author', 'category', 'status']),
-            'authors' => Article::query()->distinct()->orderBy('author_name')->pluck('author_name')->all(),
+            // Every author on file, not just the ones who already have an article.
+            'authors' => Author::query()->orderBy('name')->pluck('name')->all(),
             'categories' => self::CATEGORIES,
+        ]);
+    }
+
+    /** Stores a photo dropped into the body editor and hands back its URL. */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate(['image' => ['required', 'image', 'max:10240']]);
+
+        return response()->json([
+            'url' => Storage::disk('public')->url(Uploads::store($request->file('image'), 'articles')),
         ]);
     }
 
@@ -72,6 +90,17 @@ class ArticleController extends Controller
         return redirect()->route('admin.articles')->with('flash', 'Article removed.');
     }
 
+    /** Delete everything ticked in the listing. */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $ids = $request->collect('ids')->filter()->all();
+        $removed = $ids ? Article::query()->whereKey($ids)->delete() : 0;
+
+        return back()->with('flash', $removed
+            ? $removed.' '.str('article')->plural($removed).' removed.'
+            : 'Nothing was selected.');
+    }
+
     private function form(Article $article): View
     {
         return view('admin.articles-create', [
@@ -96,12 +125,24 @@ class ArticleController extends Controller
 
         // AUTHOR bar: an existing author fills the byline; "new" creates one from the typed name.
         $author = $request->input('author_id') === 'new' || blank($request->input('author_id'))
-            ? Author::query()->firstOrCreate(['name' => trim($request->input('author_name'))], ['role' => $request->input('author_role')])
+            ? Author::query()->firstOrCreate(['name' => trim($request->input('author_name'))])
             : Author::query()->findOrFail($request->input('author_id'));
+
+        // The profile fields belong to the author, not the article, so the byline and
+        // the card stay the same wherever that author is credited.
+        $author->fill(array_filter([
+            'role' => $request->input('author_role'),
+            'credential' => $request->input('author_credential'),
+            'bio' => $request->input('author_bio'),
+            'photo' => Uploads::store($request->file('author_photo'), 'authors'),
+        ], fn ($value) => $value !== null))->save();
+
         $data['author_id'] = $author->id;
         $data['author_name'] = $author->name;
         $data['author_role'] = $author->role;
-        $data['read_time_minutes'] = $data['read_time_minutes'] ?? max(1, (int) ceil(str_word_count(strip_tags($data['body'])) / 200));
+        // The body editor stores a small subset of HTML; read time follows the words in it.
+        $data['body'] = RichText::clean($data['body'], RichText::ALLOWED_ARTICLE);
+        $data['read_time_minutes'] = $data['read_time_minutes'] ?? max(1, (int) ceil(str_word_count(RichText::plain($data['body'])) / 200));
 
         $status = ArticleStatus::from($data['status']);
         $data['published_at'] = match ($status) {
@@ -110,14 +151,15 @@ class ArticleController extends Controller
             ArticleStatus::Draft => null,
         };
 
-        if (blank($data['slug'] ?? null)) {
-            unset($data['slug']);
+        // The address always follows the title, so a renamed article keeps a matching link.
+        unset($data['slug']);
+
+        if ($existing) {
+            $data['slug'] = $existing->slugFor($data['title']);
         }
 
         if ($cover = Uploads::store($request->file('cover'), 'articles')) {
             $data['image'] = $cover;
-        } elseif (! $existing) {
-            $data['image'] = 'featured-fastboat.png';
         }
 
         return $data;

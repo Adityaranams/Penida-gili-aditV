@@ -14,14 +14,19 @@
 @endphp
 
 <div class="flex flex-col gap-[52px] font-jakarta">
-    {{-- Lead introduction (1:2466) --}}
-    <div data-reveal class="{{ $card }}">
-        <p class="text-[23.3px] leading-[37.8px] text-editorial-ink
-                  first-letter:float-left first-letter:pr-[10px] first-letter:text-[44px] first-letter:font-bold first-letter:leading-[0.9] lg:first-letter:text-[62px]">
-            {{ $article['lead'] }}
-        </p>
-        <p class="mt-[20.7px] text-[20.7px] leading-[33.6px] text-editorial-body">{{ $article['lead_follow'] }}</p>
-    </div>
+    {{-- Lead introduction (1:2466). Only the seeded long-form articles carry one. --}}
+    @if (filled($article['lead']))
+        <div data-reveal class="{{ $card }}">
+            <p class="text-[23.3px] leading-[37.8px] text-editorial-ink
+                      first-letter:float-left first-letter:pr-[10px] first-letter:text-[44px] first-letter:font-bold first-letter:leading-[0.9] lg:first-letter:text-[62px]">
+                {{ $article['lead'] }}
+            </p>
+
+            @if (filled($article['lead_follow']))
+                <p class="mt-[20.7px] text-[20.7px] leading-[33.6px] text-editorial-body">{{ $article['lead_follow'] }}</p>
+            @endif
+        </div>
+    @endif
 
     @if ($article['has_structured_content'])
     {{-- Section 1 — port comparison table (1:2473) --}}
@@ -226,10 +231,10 @@
     </section>
 
     @else
-        <div data-reveal class="prose-article flex flex-col gap-[16px]">
-            @foreach (preg_split('/\R{2,}/', trim($article['body'] ?? '')) as $paragraph)
-                <p class="text-[17px] lg:text-[20.7px] leading-[28px] lg:leading-[33.6px] text-editorial-body">{{ $paragraph }}</p>
-            @endforeach
+        {{-- Written in the console editor, stored as a safe subset of HTML. Same white
+             card as the seeded sections, so the copy never floats outside it. --}}
+        <div data-reveal class="{{ $card }} rich-text prose-article text-[17px] lg:text-[20.7px] leading-[28px] lg:leading-[33.6px] text-editorial-body">
+            {!! $article->body_html !!}
         </div>
     @endif
     {{-- Tags & save (1:2693) --}}
@@ -242,38 +247,39 @@
             @endforeach
         </div>
 
-        <button type="button"
-                class="flex w-fit items-center gap-[8px] rounded-[10px] border border-[#c0c7d3] px-[19.4px] py-[9px] text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial-ink
-                       transition-colors duration-300 hover:border-editorial hover:text-editorial">
-            <img src="{{ asset('images/icons/article-detail/bookmark.svg') }}" alt="" class="h-[17.5px] w-[13.6px]">
-            Save Article
-        </button>
     </div>
 
-    {{-- Author bio (1:2711) --}}
-    <div data-reveal class="flex flex-col gap-[31px] rounded-editorial border border-editorial-rule bg-surface p-[42.7px] shadow-editorial sm:flex-row sm:items-start">
-        <span class="size-[103.4px] shrink-0 overflow-hidden rounded-editorial bg-editorial-rule ring-[5px] ring-[rgba(210,228,255,0.4)]">
-            <img src="{{ asset('images/articles/detail/author-bio.png') }}" alt="{{ $article['author'] }}" class="size-full object-cover">
-        </span>
+    {{-- Author bio (1:2711) — filled from the author record, hidden until one is written. --}}
+    @if (filled($article->writer?->bio))
+        <div data-reveal class="flex flex-col gap-[31px] rounded-editorial border border-editorial-rule bg-surface p-[42.7px] shadow-editorial sm:flex-row sm:items-start">
+            <span class="flex size-[103.4px] shrink-0 items-center justify-center overflow-hidden rounded-editorial bg-[#d5e2e9] text-[34px] font-bold text-[#58646a] ring-[5px] ring-[rgba(210,228,255,0.4)]">
+                @if ($article->writer->photo_url)
+                    <img src="{{ $article->writer->photo_url }}" alt="{{ $article['author'] }}" class="size-full object-cover">
+                @else
+                    {{ $article->writer->initials }}
+                @endif
+            </span>
 
-        <div class="flex flex-col gap-[10px]">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h2 class="text-[31px] font-bold leading-[41.4px] text-editorial-ink">{{ $article['author'] }}</h2>
-                    <p class="text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial">Chief Marine Operations &amp; Senior Master Skipper</p>
+            <div class="flex min-w-0 flex-col gap-[10px]">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <h2 class="break-words text-[31px] font-bold leading-[41.4px] text-editorial-ink">{{ $article['author'] }}</h2>
+                        @if (filled($article->writer->role))
+                            <p class="break-words text-[18.1px] font-semibold leading-[26px] tracking-[0.9px] text-editorial">{{ $article->writer->role }}</p>
+                        @endif
+                    </div>
+
+                    @if (filled($article->writer->credential))
+                        <span class="flex items-center gap-[5px] rounded-[5px] bg-[#d8e4eb] px-[13px] py-[5px] text-[15.5px] font-medium leading-[23.3px] text-[#111d22]">
+                            <img src="{{ asset('images/icons/article-detail/certified.svg') }}" alt="" class="h-[15.8px] w-[16.6px]">
+                            {{ $article->writer->credential }}
+                        </span>
+                    @endif
                 </div>
 
-                <span class="flex items-center gap-[5px] rounded-[5px] bg-[#d8e4eb] px-[13px] py-[5px] text-[15.5px] font-medium leading-[23.3px] text-[#111d22]">
-                    <img src="{{ asset('images/icons/article-detail/certified.svg') }}" alt="" class="h-[15.8px] w-[16.6px]">
-                    ANT-IV Certified
-                </span>
+                {{-- A pasted bio can be one unbroken string; wrap it rather than widen the card. --}}
+                <p class="break-words text-[20.7px] leading-[33.6px] text-editorial-body">{{ $article->writer->bio }}</p>
             </div>
-
-            <p class="text-[20.7px] leading-[33.6px] text-editorial-body">
-                Capt. Wayan has completed over 7,500 safe crossings of the Badung Strait and Lombok Channel.
-                Born in Kusamba, his life&rsquo;s passion is delivering pristine maritime security standards,
-                sustainable island transit, and mentoring Indonesia&rsquo;s next generation of fast boat skippers.
-            </p>
         </div>
-    </div>
+    @endif
 </div>

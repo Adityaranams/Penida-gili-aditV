@@ -42,7 +42,7 @@
                     'image'       => $hotel['image_url'],
                     'location'    => $hotel['meta'][0]['label'] ?? '',
                     'price'       => $hotel['price_from_label'],
-                    'href'        => route('hotels.show', \Illuminate\Support\Str::slug($hotel['name'])),
+                    'href'        => route('hotels.show', $hotel),
                 ])
             @endforeach
         </div>
@@ -65,7 +65,7 @@
                     'image'       => $hotel['image_url'],
                     'meta'        => $hotel['meta'],
                     'price'       => $hotel['price_from_label'],
-                    'href'        => route('hotels.show', \Illuminate\Support\Str::slug($hotel['name'])),
+                    'href'        => route('hotels.show', $hotel),
                 ])
             @endforeach
         </div>

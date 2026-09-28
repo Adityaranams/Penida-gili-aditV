@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ArticleStatus;
 use App\Enums\ListingStatus;
 use App\Models\Activity;
 use App\Models\Article;
@@ -152,5 +153,32 @@ class PublicPagesTest extends TestCase
         $this->get(route('articles.show', $draft))->assertNotFound();
 
         $this->assertSame(5, $article->fresh()->views);
+    }
+
+    public function test_article_index_filters_by_category(): void
+    {
+        Article::factory()->create(['title' => 'Harbour Basics', 'category' => 'Boat Tips', 'status' => ArticleStatus::Published, 'published_at' => now()->subDay()]);
+        Article::factory()->create(['title' => 'Temple Manners', 'category' => 'Culture', 'status' => ArticleStatus::Published, 'published_at' => now()->subDays(2)]);
+        Article::factory()->create(['title' => 'Unpublished Idea', 'category' => 'Secret', 'status' => ArticleStatus::Draft]);
+
+        // The pills list the categories that actually have published articles.
+        $this->get(route('articles.index'))
+            ->assertOk()
+            ->assertSee('All Articles')
+            ->assertSee('Boat Tips')
+            ->assertSee('Culture')
+            ->assertDontSee('Secret')
+            ->assertDontSee('Maritime Journal');
+
+        $this->get(route('articles.index', ['category' => 'Boat Tips']))
+            ->assertOk()
+            ->assertSee('Harbour Basics')
+            ->assertDontSee('Temple Manners');
+
+        // Searching inside a category keeps the category.
+        $this->get(route('articles.index', ['category' => 'Boat Tips', 'q' => 'harbour']))
+            ->assertOk()
+            ->assertSee('Harbour Basics')
+            ->assertDontSee('Temple Manners');
     }
 }

@@ -33,38 +33,45 @@
 
             <div class="flex items-center justify-between border-b border-[#e0e3e5] pb-[5px] pt-[8px]">
                 <span class="flex items-center gap-[12px]">
-                    <span class="block size-[40px] overflow-hidden rounded-full border-2 border-[#d2e4ff] p-[2px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
-                        <img src="{{ asset('images/articles/detail/author-avatar.png') }}" alt="{{ $article['author'] }}" class="size-full rounded-full object-cover">
+                    <span class="flex size-[40px] shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#d2e4ff] bg-[#d5e2e9] text-[14px] font-bold text-[#58646a]">
+                        @if ($article->writer?->photo_url)
+                            <img src="{{ $article->writer->photo_url }}" alt="{{ $article['author'] }}" class="size-full object-cover">
+                        @else
+                            {{ $article->writer?->initials ?? mb_strtoupper(mb_substr($article['author'], 0, 1)) }}
+                        @endif
                     </span>
                     <span>
                         <span class="block text-[14px] font-bold leading-[24px] text-[#181c1e]">{{ $article['author'] }}</span>
-                        <span class="block text-[12px] leading-[24px] text-[#717782]">Marine Safety Officer</span>
+                        @if (filled($article['author_role']))
+                            <span class="block text-[12px] leading-[24px] text-[#717782]">{{ $article['author_role'] }}</span>
+                        @endif
                     </span>
                 </span>
-                <a href="#" aria-label="Share this article" class="flex size-[32px] items-center justify-center rounded-full">
-                    <img src="{{ asset('images/icons/mobile/article/share.svg') }}" alt="" class="h-[15.8px] w-[16.5px]">
-                </a>
             </div>
         </header>
 
         {{-- Hero image (1:6331) --}}
         <figure data-reveal class="relative h-[230px] overflow-hidden rounded-[16px] bg-[#f1f4f6] shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]">
-            <img src="{{ asset('images/articles/detail/hero-fastboat.png') }}" alt="{{ $article['hero_caption'] }}" class="size-full object-cover">
+            <img src="{{ $article['image_url'] }}" alt="{{ $article['hero_alt'] ?: $article['title'] }}" class="size-full object-cover">
             <span class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(24,28,30,0.7)] via-transparent to-transparent"></span>
-            <figcaption class="absolute inset-x-[12px] bottom-[12px] flex items-center justify-between gap-[8px]">
-                <span class="flex min-w-0 items-center gap-[6px] rounded-[6px] bg-[rgba(24,28,30,0.4)] px-[10px] py-[4px] text-[12px] font-medium leading-[24px] text-white backdrop-blur-[2px]">
-                    <img src="{{ asset('images/icons/mobile/article/camera.svg') }}" alt="" class="h-[11.3px] w-[12.5px] shrink-0">
-                    <span class="truncate">Sanjaya Express III crossing Badung Strait</span>
-                </span>
-                <span class="shrink-0 text-[11px] leading-[24px] text-white/80">35 Knots</span>
-            </figcaption>
+            @if (filled($article['hero_caption']))
+                <figcaption class="absolute inset-x-[12px] bottom-[12px]">
+                    <span class="flex min-w-0 items-center gap-[6px] rounded-[6px] bg-[rgba(24,28,30,0.4)] px-[10px] py-[4px] text-[12px] font-medium leading-[24px] text-white backdrop-blur-[2px]">
+                        <img src="{{ asset('images/icons/mobile/article/camera.svg') }}" alt="" class="h-[11.3px] w-[12.5px] shrink-0">
+                        <span class="truncate">{{ $article['hero_caption'] }}</span>
+                    </span>
+                </figcaption>
+            @endif
         </figure>
 
         {{-- Article body --}}
         <article class="flex flex-col gap-[24px] pt-[8px]">
-            <p data-reveal class="text-[18px] leading-[29.25px] text-[#414751]">
-                <span class="float-left mr-[6px] text-[48px] font-bold leading-[48px] text-[#005ea1]">{{ mb_substr($article['lead'], 0, 1) }}</span>{{ mb_substr($article['lead'], 1) }}
-            </p>
+            {{-- Only the seeded long-form articles carry a separate lead paragraph. --}}
+            @if (filled($article['lead']))
+                <p data-reveal class="text-[18px] leading-[29.25px] text-[#414751]">
+                    <span class="float-left mr-[6px] text-[48px] font-bold leading-[48px] text-[#005ea1]">{{ mb_substr($article['lead'], 0, 1) }}</span>{{ mb_substr($article['lead'], 1) }}
+                </p>
+            @endif
 
             @if ($article['has_structured_content'])
             {{-- 01 Ports --}}
@@ -161,7 +168,9 @@
                 </p>
                 <p class="pb-[4px] text-[14px] italic leading-[22.75px] text-[#9fcaff]">{{ $article['advice'][1]['body'] ?? $article['excerpt'] }}</p>
                 <footer class="flex items-center gap-[10px] border-t border-[#2178c3] pt-[13px]">
-                    <img src="{{ asset('images/articles/detail/author-avatar.png') }}" alt="" class="size-[28px] rounded-full border border-[#d2e4ff] object-cover p-px">
+                    @if ($article->writer?->photo_url)
+                        <img src="{{ $article->writer->photo_url }}" alt="" class="size-[28px] rounded-full border border-[#d2e4ff] object-cover p-px">
+                    @endif
                     <span class="text-[12px] font-medium leading-[19.5px] text-white">{{ $article['author'] }} • 14 Years Strait Navigation</span>
                 </footer>
             </blockquote>
@@ -184,10 +193,9 @@
             </section>
 
             @else
-                <div data-reveal class="prose-article flex flex-col gap-[16px]">
-                    @foreach (preg_split('/\R{2,}/', trim($article['body'] ?? '')) as $paragraph)
-                        <p class="text-[17px] lg:text-[20.7px] leading-[28px] lg:leading-[33.6px] text-editorial-body">{{ $paragraph }}</p>
-                    @endforeach
+                {{-- Written in the console editor, stored as a safe subset of HTML. --}}
+                <div data-reveal class="rich-text prose-article text-[17px] leading-[28px] text-editorial-body">
+                    {!! $article->mobile_body_html !!}
                 </div>
             @endif
             {{-- Tags (1:6512) --}}
@@ -197,15 +205,25 @@
                 @endforeach
             </ul>
 
-            {{-- Author bio (1:6522) --}}
-            <div data-reveal class="flex items-center gap-[12px] rounded-[16px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                <img src="{{ asset('images/articles/detail/author-bio.png') }}" alt="{{ $article['author'] }}" class="size-[56px] shrink-0 rounded-full border-2 border-[#005ea1] object-cover p-[2px]">
-                <div class="min-w-0">
-                    <p class="text-[15px] font-bold leading-[24.4px] text-[#181c1e]">{{ $article['author'] }}</p>
-                    <p class="text-[12px] leading-[19.5px] text-[#717782]">Lead Maritime Safety Inspector</p>
-                    <p class="pt-[4px] text-[12px] leading-[19.5px] text-[#414751]">Over 3,400 completed strait crossings with an immaculate safety record across the Bali-Lombok maritime corridor.</p>
+            {{-- Author bio (1:6522) — filled from the author record, hidden until one is written. --}}
+            @if (filled($article->writer?->bio))
+                <div data-reveal class="flex items-center gap-[12px] rounded-[16px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+                    <span class="flex size-[56px] shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#005ea1] bg-[#d5e2e9] text-[18px] font-bold text-[#58646a]">
+                        @if ($article->writer->photo_url)
+                            <img src="{{ $article->writer->photo_url }}" alt="{{ $article['author'] }}" class="size-full object-cover">
+                        @else
+                            {{ $article->writer->initials }}
+                        @endif
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-[15px] font-bold leading-[24.4px] text-[#181c1e]">{{ $article['author'] }}</p>
+                        @if (filled($article->writer->role))
+                            <p class="text-[12px] leading-[19.5px] text-[#717782]">{{ $article->writer->role }}</p>
+                        @endif
+                        <p class="break-words pt-[4px] text-[12px] leading-[19.5px] text-[#414751]">{{ $article->writer->bio }}</p>
+                    </div>
                 </div>
-            </div>
+            @endif
 
             {{-- Related (1:6533) --}}
             <section class="flex flex-col gap-[12px] pt-[8px]">

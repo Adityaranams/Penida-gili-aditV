@@ -1,15 +1,8 @@
 {{-- Figma node 1:2102 — hero copy + category tabs + search --}}
-@php
-    $categories = ['All Articles', 'Travel Guides', 'Nusa Penida Tips', 'Boat Schedules & Safety', 'Hidden Gems', 'Island Activities'];
-@endphp
+@props(['categories' => [], 'category' => '', 'term' => ''])
 
 <section class="container-page pt-[34px] lg:pt-[82px] font-jakarta">
     <div data-reveal class="flex max-w-[985px] flex-col items-start gap-[20.5px]">
-        <span class="flex items-center gap-[10px] rounded-full bg-editorial-badge px-[18px] py-[7.7px] text-[17.95px] font-semibold leading-[25.6px] tracking-[0.9px] text-editorial-badge-ink">
-            <img src="{{ asset('images/icons/article/journal.svg') }}" alt="" class="h-[13.7px] w-[18.8px]">
-            Maritime Journal &amp; Island Insights
-        </span>
-
         <h2 class="text-[26px] lg:text-[61.5px] font-bold leading-[35px] lg:leading-[77px] tracking-[-1.23px] text-editorial-ink">
             Travel Articles &amp; Island Guides
         </h2>
@@ -20,30 +13,37 @@
         </p>
     </div>
 
-    <div data-reveal style="--reveal-delay: 120ms"
-         class="mt-[51px] flex items-center justify-between gap-6">
-        {{-- Figma 1:2113 "Scrollable Category Tabs" — the pill row scrolls, the search field stays put. --}}
-        <ul class="flex flex-1 items-center gap-[10px] overflow-x-auto pb-1">
-            @foreach ($categories as $category)
-                <li class="shrink-0">
-                    <a href="#"
-                       @class([
-                           'block rounded-full px-[27px] py-[14px] text-[17.95px] font-semibold leading-[25.6px] tracking-[0.9px] transition-colors duration-300',
-                           'bg-editorial text-white shadow-sm' => $loop->first,
-                           'border border-editorial-line bg-surface text-editorial-body hover:border-editorial hover:text-editorial' => ! $loop->first,
-                       ])>
-                        {{ $category }}
-                    </a>
-                </li>
-            @endforeach
-        </ul>
+    {{-- Search sits on its own row so the category pills get the full width below it. --}}
+    <form data-reveal style="--reveal-delay: 100ms" action="{{ route('articles.index') }}" method="get"
+          class="relative mt-[34px] w-full max-w-[520px]">
+        {{-- Searching inside a category stays in that category. --}}
+        @if ($category)
+            <input type="hidden" name="category" value="{{ $category }}">
+        @endif
+        <img src="{{ asset('images/icons/article/search.svg') }}" alt=""
+             class="pointer-events-none absolute left-[18px] top-1/2 size-[19px] -translate-y-1/2">
+        <label for="article-search" class="sr-only">Search guides</label>
+        <input id="article-search" name="q" type="search" value="{{ $term }}" data-article-search autocomplete="off" placeholder="Search guides, ports, tips..."
+               class="w-full rounded-full border border-editorial-line bg-surface py-[15px] pl-[52px] pr-[22px] text-[17.95px] text-editorial-ink placeholder:text-editorial-meta focus:border-editorial focus:outline-none">
+    </form>
 
-        <form action="{{ route('articles.index') }}" method="get" class="relative w-[333px] shrink-0">
-            <img src="{{ asset('images/icons/article/search.svg') }}" alt=""
-                 class="pointer-events-none absolute left-[18px] top-1/2 size-[19px] -translate-y-1/2">
-            <label for="article-search" class="sr-only">Search guides</label>
-            <input id="article-search" name="q" type="search" value="{{ request('q') }}" placeholder="Search guides, ports, tips..."
-                   class="w-full rounded-full border border-editorial-line bg-surface py-[15px] pl-[52px] pr-[22px] text-[17.95px] text-editorial-ink placeholder:text-editorial-meta focus:border-editorial focus:outline-none">
-        </form>
-    </div>
+    {{-- Figma 1:2113 "Scrollable Category Tabs" — the categories articles are actually filed
+         under; picking one filters the list and keeps any search term. --}}
+    <ul data-reveal style="--reveal-delay: 120ms"
+        class="mt-[24px] flex flex-wrap items-center gap-[10px]">
+        @foreach (array_merge([''], $categories) as $option)
+            @php($isActive = $category === $option)
+
+            <li>
+                <a href="{{ route('articles.index', array_filter(['category' => $option, 'q' => $term])) }}" data-article-filter
+                   @class([
+                       'block rounded-full px-[27px] py-[14px] text-[17.95px] font-semibold leading-[25.6px] tracking-[0.9px] transition-colors duration-300',
+                       'bg-editorial text-white shadow-sm' => $isActive,
+                       'border border-editorial-line bg-surface text-editorial-body hover:border-editorial hover:text-editorial' => ! $isActive,
+                   ])>
+                    {{ $option ?: 'All Articles' }}
+                </a>
+            </li>
+        @endforeach
+    </ul>
 </section>
