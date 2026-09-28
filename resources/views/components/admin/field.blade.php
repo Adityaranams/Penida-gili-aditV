@@ -11,15 +11,20 @@
     'required' => false,
     'prefix' => null,
     'help' => null,
+    'step' => null,
+    'min' => null,
+    'max' => null,
 ])
 
 @php
+    // Repeating rows use bracket names (foo[0][bar]); old() and the error bag use dots.
+    $key = str_replace(['[', ']'], ['.', ''], $name);
+    $current = old($key, $value);
+
     $control = 'w-full rounded-[8px] border bg-[#f7fafc] px-[17px] py-[13px]'
         .' font-jakarta text-[16px] leading-[24px] text-editorial-ink placeholder:text-editorial-meta'
         .' focus:border-editorial focus:outline-none';
-    $control .= $errors->has($name) ? ' border-[#dc2626]' : ' border-[rgba(192,199,211,0.5)]';
-
-    $current = old($name, $value);
+    $control .= $errors->has($key) ? ' border-[#dc2626]' : ' border-[rgba(192,199,211,0.5)]';
     $isList = is_array($options) && array_is_list($options);
 @endphp
 
@@ -34,8 +39,8 @@
                 @if ($placeholder)
                     <option value="">{{ $placeholder }}</option>
                 @endif
-                @foreach ($options as $key => $option)
-                    @php $optionValue = $isList ? $option : $key; @endphp
+                @foreach ($options as $optionKey => $option)
+                    @php $optionValue = $isList ? $option : $optionKey; @endphp
                     <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ $option }}</option>
                 @endforeach
             </select>
@@ -45,20 +50,24 @@
     @elseif ($type === 'textarea')
         <textarea name="{{ $name }}" rows="4" placeholder="{{ $placeholder }}" @required($required) class="{{ $control }}">{{ $current }}</textarea>
     @elseif ($prefix)
-        <span class="flex items-center rounded-[8px] border {{ $errors->has($name) ? 'border-[#dc2626]' : 'border-[rgba(192,199,211,0.5)]' }} bg-[#f7fafc] pl-[17px]">
+        <span class="flex items-center rounded-[8px] border {{ $errors->has($key) ? 'border-[#dc2626]' : 'border-[rgba(192,199,211,0.5)]' }} bg-[#f7fafc] pl-[17px]">
             <span class="font-jakarta text-[16px] leading-[24px] text-editorial-body">{{ $prefix }}</span>
             <input type="{{ $type }}" name="{{ $name }}" value="{{ $current }}" placeholder="{{ $placeholder }}" @required($required)
                    class="w-full bg-transparent px-[10px] py-[13px] font-jakarta text-[16px] leading-[24px] text-editorial-ink placeholder:text-editorial-meta focus:outline-none">
         </span>
     @else
-        <input type="{{ $type }}" name="{{ $name }}" value="{{ $current }}" placeholder="{{ $placeholder }}" @required($required) class="{{ $control }}">
+        <input type="{{ $type }}" name="{{ $name }}" value="{{ $current }}" placeholder="{{ $placeholder }}" @required($required)
+               @if ($step !== null) step="{{ $step }}" @endif
+               @if ($min !== null) min="{{ $min }}" @endif
+               @if ($max !== null) max="{{ $max }}" @endif
+               class="{{ $control }}">
     @endif
 
     @if ($help)
         <span class="font-jakarta text-[13px] leading-[18px] text-editorial-body">{{ $help }}</span>
     @endif
 
-    @error($name)
+    @error($key)
         <span class="font-jakarta text-[13px] leading-[18px] text-[#dc2626]">{{ $message }}</span>
     @enderror
 </label>

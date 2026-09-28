@@ -1,8 +1,12 @@
 /**
- * Console image uploader: drag-and-drop, large previews, and per-file removal.
+ * Console image uploader: drag-and-drop, large previews, per-file removal.
  *
  * The <input type="file"> inside [data-uploader] stays the source of truth, so the
- * form still works with JavaScript disabled — this only adds feedback and editing.
+ * form still works with JavaScript disabled. Two behaviours matter here:
+ *  - picking again ADDS to the selection on multi-file inputs (browsers replace by
+ *    default, which made it look like only one photo could be uploaded);
+ *  - the photos already saved on the record ([data-uploader-current]) are hidden once
+ *    a replacement is picked, so the form shows exactly what will be stored.
  */
 const humanSize = (bytes) => (bytes >= 1024 * 1024
     ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
@@ -12,10 +16,13 @@ document.querySelectorAll('[data-uploader]').forEach((root) => {
     const input = root.querySelector('[data-uploader-input]');
     const drop = root.querySelector('[data-uploader-drop]');
     const preview = root.querySelector('[data-uploader-preview]');
+    const current = root.querySelector('[data-uploader-current]');
 
     if (!input || !drop || !preview) {
         return;
     }
+
+    const key = (file) => `${file.name}:${file.size}:${file.lastModified}`;
 
     /** Write a file list back into the input; DataTransfer is the only supported way. */
     const setFiles = (files) => {
@@ -29,6 +36,11 @@ document.querySelectorAll('[data-uploader]').forEach((root) => {
         preview.innerHTML = '';
         const files = [...(input.files ?? [])];
         preview.hidden = files.length === 0;
+
+        // Only a single-file input replaces what is stored; galleries add to it.
+        if (current && ! input.multiple) {
+            current.hidden = files.length > 0;
+        }
 
         files.forEach((file, index) => {
             const figure = document.createElement('figure');
@@ -63,7 +75,33 @@ document.querySelectorAll('[data-uploader]').forEach((root) => {
         });
     };
 
-    input.addEventListener('change', render);
+    // Remember the selection so a second trip to the file picker adds to it.
+    let selected = [];
+
+    input.addEventListener('change', () => {
+        const picked = [...(input.files ?? [])];
+
+        if (!input.multiple) {
+            selected = picked;
+            render();
+
+            return;
+        }
+
+        const merged = [...selected];
+        picked.forEach((file) => {
+            if (! merged.some((existing) => key(existing) === key(file))) {
+                merged.push(file);
+            }
+        });
+
+        selected = merged;
+        setFiles(merged);
+    });
+
+    // Keep `selected` in step when a thumbnail is removed or files are dropped.
+    const syncSelection = () => { selected = [...(input.files ?? [])]; };
+    preview.addEventListener('click', () => queueMicrotask(syncSelection));
 
     ['dragenter', 'dragover'].forEach((type) => {
         drop.addEventListener(type, (event) => {
@@ -85,7 +123,7 @@ document.querySelectorAll('[data-uploader]').forEach((root) => {
             return;
         }
 
-        // Dropping adds to what is already selected when the input takes several files.
         setFiles(input.multiple ? [...(input.files ?? []), ...dropped] : dropped.slice(0, 1));
+        syncSelection();
     });
 });

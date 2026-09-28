@@ -12,6 +12,7 @@
         action="Download Report"
         :action-href="route('admin.report.export', request()->query())"
         :columns="['Passenger', 'Route', 'Date & Time', 'Amount', 'Status', 'Action']"
+        :center-columns="['Route', 'Date & Time', 'Amount', 'Status', 'Action']"
         :paginator="$bookings">
 
         {{-- Filters & Search (1:10428): same Search Route / Boat / Date / Filter bar as the Schedule console --}}
@@ -33,8 +34,8 @@
                 </td>
 
                 {{-- Route: from → to over the vessel (1:10488) --}}
-                <td class="px-[16px] py-[18px] pl-[32px]">
-                    <span class="flex items-center gap-[8px] whitespace-nowrap text-[14px] leading-[20px] text-editorial-ink">
+                <td class="px-[16px] py-[18px] text-center">
+                    <span class="inline-flex items-center gap-[8px] whitespace-nowrap text-[14px] leading-[20px] text-editorial-ink">
                         {{ $row['from'] }}
                         <img src="{{ asset('images/icons/admin/report/route-arrow.svg') }}" alt="to" class="size-[9.3px]">
                         {{ $row['to'] }}
@@ -43,15 +44,15 @@
                 </td>
 
                 {{-- Date & time (1:10495) --}}
-                <td class="px-[16px] py-[18px]">
+                <td class="px-[16px] py-[18px] text-center">
                     <span class="block whitespace-nowrap text-[14px] leading-[20px] text-editorial-ink">{{ $row['date'] }}</span>
                     <span class="block text-[12px] leading-[16px] text-editorial-body">{{ $row['time'] }}</span>
                 </td>
 
-                <td class="whitespace-nowrap px-[16px] py-[24px] text-[16px] font-semibold leading-[24px] text-editorial-ink">{{ $row['amount'] }}</td>
+                <td class="whitespace-nowrap px-[16px] py-[24px] text-center text-[16px] font-semibold leading-[24px] text-editorial-ink">{{ $row['amount'] }}</td>
 
                 {{-- Status pill with tinted border (1:10503) --}}
-                <td class="px-[16px] py-[24px]">
+                <td class="px-[16px] py-[24px] text-center">
                     <span @class([
                         'inline-block whitespace-nowrap rounded-full border px-[11px] py-[3px] text-[12px] leading-[16px]',
                         'border-[#bbf7d0] bg-[#dcfce7] text-[#166534]' => $row['status'] === 'Confirmed',
@@ -62,7 +63,7 @@
 
                 {{-- Action: kebab menu with the status changes (1:10506) --}}
                 <td class="px-[16px] py-[16px]">
-                    <details class="relative ml-auto w-fit">
+                    <details class="relative mx-auto w-fit" data-row-menu>
                         <summary aria-label="Actions for {{ $row['reference'] }}"
                                  class="flex size-[28px] cursor-pointer list-none items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#f1f4f6] [&::-webkit-details-marker]:hidden">
                             <img src="{{ asset('images/icons/admin/report/row-menu.svg') }}" alt="" class="h-[16px] w-[4px]">

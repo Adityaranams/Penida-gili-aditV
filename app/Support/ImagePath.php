@@ -14,7 +14,7 @@ final class ImagePath
     public static function url(?string $path, string $folder): string
     {
         if (blank($path)) {
-            return asset('images/placeholder.png');
+            return asset('images/placeholder.svg');
         }
 
         if (str_starts_with($path, 'uploads/')) {

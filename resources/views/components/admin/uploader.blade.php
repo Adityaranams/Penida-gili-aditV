@@ -1,6 +1,9 @@
 {{-- Dashed drop zone (Figma 1:7212). A real file input sits behind the label so the
-     control works without any JavaScript; resources/js/uploader.js adds drag-and-drop
-     and thumbnails of the chosen files. --}}
+     control works without any JavaScript; resources/js/uploader.js adds drag-and-drop,
+     thumbnails and per-file removal.
+
+     Pass the photos already on the record as the default slot: they are hidden as soon
+     as the admin picks replacements, so the form always shows what will be saved. --}}
 @props(['name' => 'photos', 'hint' => 'SVG, PNG, JPG or GIF (MAX. 800x400px)', 'multiple' => true])
 
 <div data-uploader>
@@ -21,6 +24,12 @@
 
     {{-- Thumbnails of the current selection; filled by the script, hidden until something is picked. --}}
     <div class="mt-[16px] grid gap-[16px] sm:grid-cols-2" data-uploader-preview hidden></div>
+
+    @if (trim($slot) !== '')
+        <div data-uploader-current>
+            {{ $slot }}
+        </div>
+    @endif
 
     @error($name)
         <p class="mt-[8px] font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</p>

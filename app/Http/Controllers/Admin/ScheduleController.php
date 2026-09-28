@@ -75,6 +75,17 @@ class ScheduleController extends Controller
         return redirect()->route('admin.schedules')->with('flash', 'Schedule removed.');
     }
 
+    /** Delete everything ticked in the listing. */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $ids = $request->collect('ids')->filter()->all();
+        $removed = $ids ? Schedule::query()->whereKey($ids)->delete() : 0;
+
+        return back()->with('flash', $removed
+            ? $removed.' '.str('schedule')->plural($removed).' removed.'
+            : 'Nothing was selected.');
+    }
+
     private function form(Schedule $schedule): View
     {
         $vessels = Vessel::query()->with('operator')->orderBy('name')->get();

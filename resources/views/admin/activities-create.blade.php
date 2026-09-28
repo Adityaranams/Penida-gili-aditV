@@ -4,12 +4,11 @@
 @php
     $editing = $activity->exists;
     $backHref = route('admin.activities');
-    $selectedDays = old('days', $activity->days ?? $days);
+    $selectedDays = old('days', $activity->days ?? []);
     $time = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('H:i') : null;
     $money = fn ($v) => $v ? number_format($v, 0, ',', '.') : null;
-    $currentStatus = old('status', $activity->publish_at ? 'scheduled' : $activity->status?->value);
+    $currentStatus = old('status', $activity->status?->value);
     $chips = fn ($items) => is_array($items) ? implode(', ', $items) : (string) $items;
-    $photoCount = ($activity->image ? 1 : 0) + count($activity->gallery ?? []);
 @endphp
 
 @section('title', $editing ? 'Edit '.$activity->name : 'Add New Activity')
@@ -27,13 +26,13 @@
             <button type="submit" form="activity-form" name="submit_as" value="draft"
                     class="flex items-center gap-[8px] rounded-[8px] border border-[#c0c7d3] bg-surface px-[18px] py-[10px] font-jakarta text-[14px] font-semibold text-editorial-ink
                            transition-colors duration-300 hover:bg-[#f1f4f6]">
-                <img src="{{ asset('images/icons/admin/form-save.svg') }}" alt="" class="size-[16px]">
+                <x-admin.icon name="form-save.svg" class="size-[16px] bg-editorial" />
                 Save Draft
             </button>
             <button type="submit" form="activity-form" name="submit_as" value="publish"
                     class="flex items-center gap-[8px] rounded-[8px] bg-editorial px-[18px] py-[10px] font-jakarta text-[14px] font-semibold text-white
                            transition-transform duration-300 ease-smooth hover:-translate-y-0.5">
-                <img src="{{ asset('images/icons/admin/nav-activity.svg') }}" alt="" class="size-[16px]">
+                <x-admin.icon name="nav-activity.svg" class="size-[16px] bg-white" />
                 Publish Activity
             </button>
         </x-slot:actions>
@@ -54,19 +53,37 @@
                             <x-admin.field label="Short Catchy Tagline / Badge" name="badge" :value="$activity->badge" placeholder="Best Seller" />
                         </div>
 
-                        <div class="flex flex-col gap-[8px]">
+                        <div class="grid [&>*]:min-w-0 gap-[20px] sm:grid-cols-2">
+                            <x-admin.field label="Location" name="place_label" :value="$activity->place_label" placeholder="Penglipuran"
+                                           help="Shown on the activity card next to the pin icon." />
+                            <x-admin.field label="Rating" name="rating" type="number" step="0.1" min="1" max="5" :value="$activity->rating > 0 ? $activity->rating : null" placeholder="4.8"
+                                           help="Shown on the card. Leave empty to hide the stars." />
+                        </div>
+
+                        {{-- Rich-text editor (1:8566). The contenteditable is the control the admin
+                             types in; it mirrors into the textarea that actually posts, so the field
+                             still works (as plain text) when JavaScript is off. --}}
+                        <div class="flex flex-col gap-[8px]" data-editor>
                             <label for="activity-description" class="font-jakarta text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-editorial-ink">Full Description *</label>
                             <div @class(['overflow-hidden rounded-[8px] border bg-[#f7fafc]', 'border-[#dc2626]' => $errors->has('description'), 'border-[rgba(192,199,211,0.5)]' => ! $errors->has('description')])>
-                                {{-- Rich-text toolbar strip (1:8566) — plain text is stored; the strip mirrors the design. --}}
-                                <div class="flex items-center gap-[4px] border-b border-[rgba(192,199,211,0.3)] bg-surface px-[8px] py-[6px] font-jakarta text-[13px] text-editorial-body" aria-hidden="true">
-                                    <span class="rounded-[4px] px-[8px] py-[2px] font-bold">B</span>
-                                    <span class="rounded-[4px] px-[8px] py-[2px] italic">I</span>
-                                    <span class="rounded-[4px] px-[8px] py-[2px] underline">U</span>
+                                <div class="flex items-center gap-[4px] border-b border-[rgba(192,199,211,0.3)] bg-surface px-[8px] py-[6px] font-jakarta text-[13px] text-editorial-body">
+                                    <button type="button" data-editor-command="bold" title="Bold" aria-label="Bold"
+                                            class="rounded-[4px] px-[8px] py-[2px] font-bold transition-colors hover:bg-[#f1f4f6] aria-pressed:bg-editorial/10 aria-pressed:text-editorial">B</button>
+                                    <button type="button" data-editor-command="italic" title="Italic" aria-label="Italic"
+                                            class="rounded-[4px] px-[8px] py-[2px] italic transition-colors hover:bg-[#f1f4f6] aria-pressed:bg-editorial/10 aria-pressed:text-editorial">I</button>
+                                    <button type="button" data-editor-command="underline" title="Underline" aria-label="Underline"
+                                            class="rounded-[4px] px-[8px] py-[2px] underline transition-colors hover:bg-[#f1f4f6] aria-pressed:bg-editorial/10 aria-pressed:text-editorial">U</button>
                                     <span class="mx-[4px] h-[16px] w-px bg-[rgba(192,199,211,0.5)]"></span>
-                                    <span class="rounded-[4px] px-[8px] py-[2px]">&bull; List</span>
-                                    <span class="rounded-[4px] px-[8px] py-[2px]">1. List</span>
+                                    <button type="button" data-editor-command="insertUnorderedList" title="Bulleted list"
+                                            class="rounded-[4px] px-[8px] py-[2px] transition-colors hover:bg-[#f1f4f6] aria-pressed:bg-editorial/10 aria-pressed:text-editorial">&bull; List</button>
+                                    <button type="button" data-editor-command="insertOrderedList" title="Numbered list"
+                                            class="rounded-[4px] px-[8px] py-[2px] transition-colors hover:bg-[#f1f4f6] aria-pressed:bg-editorial/10 aria-pressed:text-editorial">1. List</button>
                                 </div>
-                                <textarea id="activity-description" name="description" rows="8" required
+
+                                <div data-editor-surface contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="activity-description-label" hidden
+                                     class="rich-text min-h-[200px] w-full px-[17px] py-[13px] font-jakarta text-[16px] leading-[26px] text-editorial-ink focus:outline-none">{!! \App\Support\RichText::clean(old('description', $activity->description)) !!}</div>
+
+                                <textarea id="activity-description" name="description" rows="8" required data-editor-input
                                           placeholder="Step into the timeless living heritage of Penglipuran Village…"
                                           class="w-full resize-y bg-transparent px-[17px] py-[13px] font-jakarta text-[16px] leading-[26px] text-editorial-ink placeholder:text-editorial-meta focus:outline-none">{{ old('description', $activity->description) }}</textarea>
                             </div>
@@ -108,10 +125,10 @@
                     </div>
                 </x-admin.panel>
 
-                {{-- 3. Experience Highlights & Inclusions (1:8695) --}}
-                <x-admin.panel title="Experience Highlights & Inclusions" description="Set clear expectations on deliverables and requirements" icon="form-check.svg">
+                {{-- 3. Inclusions & Important Info (1:8695) — the two tabs of the same name on the activity page --}}
+                <x-admin.panel title="Inclusions &amp; Important Info" description="Fills the Inclusions and Important Info tabs on the activity page" icon="form-check.svg">
                     <div class="flex flex-col gap-[20px]">
-                        @foreach (['included' => ["What's Included", '+ Add inclusion...', 'bg-editorial/10 text-editorial'], 'excluded' => ["What's Excluded", '+ Add exclusion...', 'bg-[#fee2e2] text-[#991b1b]']] as $field => [$label, $placeholder, $tone])
+                        @foreach (['included' => ["Inclusions — What's Included", '+ Add inclusion...', 'bg-editorial/10 text-editorial'], 'excluded' => ["Inclusions — What's Excluded", '+ Add exclusion...', 'bg-[#fee2e2] text-[#991b1b]']] as $field => [$label, $placeholder, $tone])
                             <div class="flex flex-col gap-[8px]" data-keywords data-chip-class="{{ $tone }}">
                                 <span class="font-jakarta text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-editorial-ink">{{ $label }}</span>
                                 <input type="hidden" name="{{ $field }}" value="{{ $chips(old($field, $activity->{$field} ?? [])) }}">
@@ -124,44 +141,42 @@
                             </div>
                         @endforeach
 
-                        <x-admin.field label="Important Notes" name="important_notes" type="textarea" :value="$activity->important_notes"
-                                       placeholder="- Please show your mobile e-voucher at the local reception counter upon arrival.&#10;- Costumes are available for adults and children (ages 5+).&#10;- Hands-on help with sarongs and sashes is included." />
+                        {{-- Real newlines: an &#10; entity inside a Blade echo would print literally. --}}
+                        <x-admin.field label="Important Info" name="important_notes" type="textarea" :value="$activity->important_notes"
+                                       :placeholder="implode(PHP_EOL, [
+                                           '- Please show your mobile e-voucher at the local reception counter upon arrival.',
+                                           '- Costumes are available for adults and children (ages 5+).',
+                                           '- Hands-on help with sarongs and sashes is included.',
+                                       ])"
+                                       help="Shown under the Important Info tab; one line per point." />
                     </div>
                 </x-admin.panel>
 
-                {{-- 4. Media & Gallery Upload (1:8775) --}}
-                <x-admin.panel title="Media & Gallery Upload" description="Drag to reorder photos. High quality imagery increases booking conversions." icon="form-camera.svg" :badge="$photoCount.' / 8 Photos'" badge-tone="muted">
-                    <div class="flex flex-col gap-[20px]" data-media>
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-admin border-2 border-dashed border-[rgba(192,199,211,0.6)] bg-[#f7fafc] p-[34px]
-                                      transition-colors duration-300 hover:border-editorial hover:bg-[#eef4f8]">
-                            <input type="file" name="gallery[]" accept="image/png,image/jpeg,image/webp" multiple class="sr-only" data-gallery-input>
-                            <span class="mb-[16px] flex size-[64px] items-center justify-center rounded-full bg-[#d5e2e9]">
-                                <img src="{{ asset('images/icons/admin/form-upload.svg') }}" alt="" class="size-[20px]">
-                            </span>
-                            <span class="font-jakarta text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-editorial-ink">Click to browse or drop images here</span>
-                            <span class="font-jakarta text-[14px] leading-[20px] text-editorial-body">Upload high-resolution activity photos (PNG, JPG up to 10MB each, min 1280x720)</span>
-                            <span data-gallery-picked class="mt-[6px] font-jakarta text-[13px] text-editorial"></span>
-                        </label>
-                        @error('gallery.*') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
+                {{-- 4. Experiences Awaiting You (1:1654 on the public page) --}}
+                <x-admin.panel title="Experiences Awaiting You" description="Highlights listed one by one on the activity page." icon="form-check.svg">
+                    @include('partials.admin.activity-experiences')
+                </x-admin.panel>
 
-                        {{-- Image Thumbnails Grid (1:8796) — first tile is the hero cover --}}
-                        <div class="grid [&>*]:min-w-0 gap-[16px] sm:grid-cols-3">
-                            <label class="relative block cursor-pointer overflow-hidden rounded-[10px] border-2 border-editorial">
-                                <input type="file" name="cover" accept="image/png,image/jpeg,image/webp" class="sr-only" data-cover-input>
-                                <img data-cover-preview src="{{ $activity->image ? \App\Support\ImagePath::url($activity->image, 'activities') : '' }}" alt="" @if (! $activity->image) hidden @endif class="h-[120px] w-full object-cover">
-                                @if (! $activity->image)
-                                    <span data-cover-empty class="flex h-[120px] items-center justify-center bg-[#f1f4f6] font-jakarta text-[13px] text-editorial-body">Choose cover image</span>
-                                @endif
-                                <span class="absolute left-[8px] top-[8px] rounded-[6px] bg-editorial px-[8px] py-[3px] font-jakarta text-[11px] font-semibold text-white">Hero Featured Cover</span>
-                            </label>
-                            @foreach ($activity->gallery ?? [] as $photo)
-                                <figure class="overflow-hidden rounded-[10px]">
-                                    <img src="{{ \App\Support\ImagePath::url($photo['image'] ?? $photo, 'activities/detail') }}" alt="{{ $photo['alt'] ?? '' }}" class="h-[120px] w-full object-cover">
-                                </figure>
-                            @endforeach
-                        </div>
-                        @error('cover') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
-                    </div>
+                {{-- 5. Cover photo (1:8775) — the single image the activity card shows --}}
+                <x-admin.panel title="Cover Photo" description="Shown on the activity card in the catalogue. One photo, landscape works best." icon="form-camera.svg">
+                    <x-admin.uploader name="cover" :multiple="false" hint="PNG, JPG or WEBP, one photo (max 10MB).">
+                        @if ($activity->image)
+                            <x-admin.gallery-preview :cover="$activity->image" folder="activities" />
+                        @endif
+                    </x-admin.uploader>
+                </x-admin.panel>
+
+                {{-- 5. Gallery (1:8796) — extra photos on the detail page --}}
+                <x-admin.panel title="Media & Gallery Upload" description="Extra photos shown inside the activity page. The cover above stays separate." icon="form-camera.svg" :badge="count($activity->gallery ?? []).' / 8 Photos'" badge-tone="muted">
+                    <x-admin.uploader name="gallery" hint="PNG, JPG or WEBP, up to 8 photos. Pick several at once, or add them one by one.">
+                        @if ($activity->gallery)
+                            <p class="mt-[20px] font-jakarta text-[14px] leading-[22px] text-editorial-meta">
+                                Already in the gallery &mdash; new photos are added to these. Tick one to remove it when you save.
+                            </p>
+
+                            <x-admin.gallery-preview :items="$activity->gallery" folder="activities" remove="remove_photos" />
+                        @endif
+                    </x-admin.uploader>
                 </x-admin.panel>
             </div>
 
@@ -169,10 +184,6 @@
                 {{-- 1. Publishing Status (1:8828) --}}
                 <x-admin.panel title="Publishing Status" icon="form-vessel.svg">
                     <x-admin.radio-cards name="status" :options="$statuses" :selected="$currentStatus" />
-
-                    <div data-publish-at class="mt-[12px]" @if ($currentStatus !== 'scheduled') hidden @endif>
-                        <x-admin.field label="Go live at" name="publish_at" type="datetime-local" :value="$activity->publish_at?->format('Y-m-d\TH:i')" />
-                    </div>
 
                     <div class="mt-[16px] border-t border-[rgba(192,199,211,0.3)] pt-[16px]">
                         <x-admin.toggle name="is_public" label="Public Visibility" description="Show on Penida Gili website portal" :checked="old('is_public', $activity->is_public ?? true)" />
@@ -183,16 +194,22 @@
                 <x-admin.panel title="Pricing & Quota Capacity" icon="kpi-revenue.svg">
                     <div class="flex flex-col gap-[16px]">
                         <x-admin.field label="Base Price per Pax (IDR)" name="price_adult" :value="$money($activity->price_adult)" placeholder="75.000" prefix="Rp" :required="true" />
+                        {{-- Set the discount either way round: type the percentage and the
+                             strikethrough price is worked out, or type the old price and the
+                             percentage follows. Only the two prices are stored. --}}
+                        <div>
+                            <x-admin.field label="Discount (%)" name="discount_percent" type="number" min="0" max="95" step="1"
+                                           :value="$activity->discount_percent ?: null" placeholder="22"
+                                           help="Optional. Fills the original price below from the base price." />
+                        </div>
+
                         <div>
                             <x-admin.field label="Original / Strikethrough Price" name="price_was" :value="$money($activity->price_was)" placeholder="150.000" prefix="Rp" />
-                            <p data-discount-note class="mt-[6px] font-jakarta text-[13px] leading-[18px] text-editorial" @if (! $activity->price_was) hidden @endif>
-                                Displays {{ $activity->price_was ? round((1 - $activity->price_adult / max(1, $activity->price_was)) * 100) : 0 }}% discount badge to customers
+                            <p data-discount-note class="mt-[6px] font-jakarta text-[13px] leading-[18px] text-editorial" @if (! $activity->discount_percent) hidden @endif>
+                                Displays {{ $activity->discount_percent }}% discount badge to customers
                             </p>
                         </div>
 
-                        <div class="rounded-[8px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] px-[16px] py-[14px]">
-                            <x-admin.toggle name="dual_pricing" label="Domestic vs Foreign Price" description="Enable dual-tier pricing model" :checked="old('dual_pricing', $activity->dual_pricing ?? false)" />
-                        </div>
                         <div class="flex flex-col gap-[8px]">
                             <label for="max-daily-capacity" class="font-jakarta text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-editorial-ink">Max Daily Capacity / Quota *</label>
                             <span @class(['flex items-center rounded-[8px] border bg-[#f7fafc] pr-[17px]', 'border-[#dc2626]' => $errors->has('max_daily_capacity'), 'border-[rgba(192,199,211,0.5)]' => ! $errors->has('max_daily_capacity')])>

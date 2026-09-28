@@ -1,0 +1,7 @@
+<svg width="800" height="500" viewBox="0 0 800 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No photo yet">
+  <rect width="800" height="500" fill="#EEF2F5"/>
+  <g transform="translate(340 190)" fill="#B7C3CC">
+    <path d="M12 0h96a12 12 0 0 1 12 12v96a12 12 0 0 1-12 12H12A12 12 0 0 1 0 108V12A12 12 0 0 1 12 0Zm0 12v78l30-30 24 24 30-30 18 18V12H12Zm74 22a12 12 0 1 1 0 24 12 12 0 0 1 0-24Z"/>
+  </g>
+  <text x="400" y="360" text-anchor="middle" font-family="Plus Jakarta Sans, Segoe UI, sans-serif" font-size="24" fill="#93A2AD">No photo yet</text>
+</svg>

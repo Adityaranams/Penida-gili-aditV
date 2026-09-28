@@ -16,7 +16,7 @@
     ])
 
     {{-- Cards sit level; hovering lifts one out of the row (Figma shows card 2 in its hover state). --}}
-    <div class="mt-[57px] lg:mt-[135px] grid [&>*]:min-w-0 items-start gap-[44px] sm:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-[57px] lg:mt-[135px] grid [&>*]:min-w-0 items-stretch gap-[44px] sm:grid-cols-2 xl:grid-cols-4">
         @foreach ($services as $index => $service)
             <article data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
                      class="group flex w-full max-w-[347px] flex-col items-center rounded-card border-2 border-line-card bg-surface px-[44px] pb-[44px] pt-[39px] text-center shadow-card

@@ -11,10 +11,12 @@
     'action' => null,
     'actionHref' => '#',
     'columns' => [],
+    'centerColumns' => [],
     'summary' => '',
     'paginator' => null,
     'panelTitle' => null,
     'panelBadge' => null,
+    'selectable' => false,
 ])
 
 <div class="flex flex-wrap items-start justify-between gap-4 pt-[24px]">
@@ -64,8 +66,19 @@
         <table class="w-full min-w-[1000px] border-collapse text-left">
             <thead class="bg-[#f1f4f6]">
                 <tr>
+                    @if ($selectable)
+                        {{-- Select-all for the rows on this page (resources/js/bulk-select.js). --}}
+                        <th scope="col" class="w-[52px] pl-[20px] pr-[4px]">
+                            <input type="checkbox" data-bulk-all aria-label="Select all rows on this page"
+                                   class="size-[18px] cursor-pointer rounded-[4px] accent-editorial">
+                        </th>
+                    @endif
+
                     @foreach ($columns as $column)
-                        <th scope="col" class="px-[16px] py-[16px] text-[14px] font-semibold uppercase leading-[20px] tracking-[0.5px] text-editorial-body">
+                        <th scope="col" @class([
+                                'px-[16px] py-[16px] text-[14px] font-semibold uppercase leading-[20px] tracking-[0.5px] text-editorial-body',
+                                'text-center' => in_array($column, $centerColumns, true),
+                            ])>
                             {{ $column }}
                         </th>
                     @endforeach

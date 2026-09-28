@@ -22,10 +22,12 @@
              class="size-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105">
     </div>
 
-    <div class="mt-[23px] flex items-center gap-[19px]">
-        <img src="{{ asset('images/icons/stars.svg') }}" alt="" class="h-[24.5px] w-[138.7px]">
-        <span class="text-[16px] leading-[30px] text-ink">{{ $rating }}</span>
-    </div>
+    @if ((float) $rating > 0)
+        <div class="mt-[23px] flex items-center gap-[19px]">
+            <x-rating-stars :rating="$rating" />
+            <span class="text-[16px] leading-[30px] text-ink">{{ $rating }}</span>
+        </div>
+    @endif
 
     <h3 class="mt-[23px] text-[24px] uppercase leading-[30px] text-ink transition-colors duration-300 group-hover:text-brand">
         {{ $name }}
@@ -44,7 +46,7 @@
 
     <div class="mt-[16px] flex items-end justify-between">
         <div>
-            <p class="text-[16px] leading-[30px] text-ink-muted">Mulai Dari</p>
+            <p class="text-[16px] leading-[30px] text-ink-muted">Start from</p>
             <p class="text-[24px] font-bold leading-[30px] text-ink">{{ $price }}</p>
         </div>
 

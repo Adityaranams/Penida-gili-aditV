@@ -24,7 +24,10 @@
     {{-- Figma node 1:1698 — hero gallery, 1 large + 4 small --}}
     <section class="container-page pt-[54px]">
         <div data-reveal class="grid [&>*]:min-w-0 gap-[20px] overflow-hidden rounded-detail md:grid-cols-4 md:grid-rows-2">
-            @foreach ($hotel['gallery_photos'] as $photo)
+            @php($frames = array_slice($hotel['gallery_photos'], 0, 5))
+            @php($extra = count($hotel['gallery_photos']) - count($frames))
+
+            @foreach ($frames as $photo)
                 <button type="button" data-lightbox-group="hotel" data-lightbox="{{ $photo['url'] }}" data-lightbox-alt="{{ $photo['alt'] }}"
                         @class([
                             'group relative block cursor-zoom-in overflow-hidden rounded-detail',
@@ -34,13 +37,16 @@
                     <img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}"
                          class="size-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105">
 
-                    @if (! empty($photo['more']))
-                        <span class="absolute inset-0 flex items-center justify-center bg-black/30 text-[29.9px] font-semibold leading-[40px] text-white">
-                            {{ $photo['more'] }}
+                    {{-- Anything that does not fit is counted on the last frame. --}}
+                    @if ($loop->last && $extra > 0)
+                        <span class="absolute inset-0 flex items-center justify-center bg-black/45 text-[29.9px] font-semibold leading-[40px] text-white transition-colors duration-300 group-hover:bg-black/55">
+                            +{{ $extra }}
                         </span>
                     @endif
                 </button>
             @endforeach
+
+            <x-gallery-extras :photos="array_slice($hotel['gallery_photos'], 5)" group="hotel" />
         </div>
     </section>
 

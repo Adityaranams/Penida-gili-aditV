@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BoatOperator;
 use App\Models\Review;
 use App\Models\Schedule;
+use App\Models\Vessel;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -18,20 +18,19 @@ class HomeController extends Controller
     public function index(): View
     {
         return view('pages.home', [
-            'operators' => BoatOperator::query()
+            // The three best-rated boats the public can actually book.
+            'topBoats' => Vessel::query()
                 ->active()
-                // Only what the public can actually book: drafts and retired boats stay out of the counts.
-                ->withCount([
-                    'schedules as schedules_count' => fn (Builder $q) => $q->active(),
-                    'vessels as vessels_count' => fn (Builder $q) => $q->active(),
-                ])
+                ->whereHas('operator', fn (Builder $q) => $q->active())
+                ->with(['schedules' => fn ($q) => $q->active()])
                 ->orderByDesc('rating')
+                ->orderBy('name')
                 ->take(3)
                 ->get(),
             'popularRoutes' => $this->popularRoutes(),
             'testimonials' => Review::query()
                 ->where('is_published', true)
-                ->whereMorphedTo('reviewable', BoatOperator::class)
+                ->whereMorphedTo('reviewable', Vessel::class)
                 ->latest('experienced_at')
                 ->take(2)
                 ->get(),
@@ -48,15 +47,22 @@ class HomeController extends Controller
     {
         $icons = ['route-penida.svg', 'route-gili.svg', 'route-lembongan.svg'];
 
+        // "· by Island Runner, Penida Express" — omitted when no boat is assigned yet.
+        $boats = function ($group): string {
+            $names = $group->pluck('vessel.name')->filter()->unique();
+
+            return $names->isEmpty() ? '' : ', sailed by '.$names->join(', ');
+        };
+
         return Schedule::query()
             ->active()
-            ->with(['fromPort', 'toPort', 'operator'])
+            ->with(['fromPort', 'toPort', 'vessel'])
             ->get()
             ->groupBy(fn (Schedule $schedule) => $schedule->from_port_id.'-'.$schedule->to_port_id)
             ->sortByDesc(fn ($group) => $group->count())
             ->take(3)
             ->values()
-            ->map(function ($group, $index) use ($icons) {
+            ->map(function ($group, $index) use ($icons, $boats) {
                 /** @var Schedule $first */
                 $first = $group->first();
                 $sailings = $group->count();
@@ -64,9 +70,10 @@ class HomeController extends Controller
                 return [
                     'icon' => $icons[$index % count($icons)],
                     'title' => $first->fromPort->name.' ➔ '.$first->toPort->name,
+                    // Named after the boats that sail it, so the copy follows what the console manages.
                     'body' => $sailings.' daily sailing'.($sailings > 1 ? 's' : '')
-                        .' from '.$group->min('departure_label').', operated by '
-                        .$group->pluck('operator.name')->unique()->join(', ').'. Fares from '
+                        .' from '.$group->min('departure_label')
+                        .$boats($group).'. Fares from '
                         .Money::idr($group->min('price_adult')).'.',
                     'href' => route('boats.index', ['from' => $first->fromPort->name, 'to' => $first->toPort->name]),
                 ];

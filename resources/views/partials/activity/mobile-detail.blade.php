@@ -36,10 +36,10 @@
                 @endforeach
             </ul>
 
-            <p class="mt-[16px] text-[16px] leading-[24px] text-[#414751]">{{ \Illuminate\Support\Str::before($activity['intro'], '. ') }}.</p>
+            <p class="mt-[16px] text-[16px] leading-[24px] text-[#414751]">{{ \Illuminate\Support\Str::before((string) $activity['intro'], '. ') }}.</p>
 
             <ul class="mt-[16px] flex flex-col gap-[16px] border-t border-[rgba(192,199,211,0.3)] pt-[25px]">
-                @foreach (array_slice($activity['highlights'], 0, 2) as $highlight)
+                @foreach (array_slice($activity['highlight_items'], 0, 2) as $highlight)
                     @php $size = $mHighlightIcon[$highlight['icon']] ?? ['w' => 34, 'h' => 42]; @endphp
                     <li class="flex items-start gap-[12px]">
                         <img src="{{ asset('images/icons/mobile/detail/'.$highlight['icon']) }}" alt="" class="shrink-0" style="width: {{ $size['w'] }}px; height: {{ $size['h'] }}px">
@@ -69,17 +69,52 @@
         {{-- Summary (1:4184) --}}
         <section id="m-summary" data-reveal class="flex flex-col gap-[16px]">
             <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Summary</h2>
-            <p class="text-[16px] leading-[26px] text-[#414751]">{{ $activity['summary'] }}</p>
+            <div class="rich-text text-[16px] leading-[26px] text-[#414751]">{!! $activity['summary_html'] !!}</div>
         </section>
 
         <section id="m-experiences" data-reveal class="flex flex-col gap-[16px] pt-[16px]" @if (empty($activity['experiences'])) hidden @endif>
             <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Experiences Awaiting You</h2>
-            @foreach ($activity['experiences'] as $experience)
+            @foreach ($activity['experiences'] ?? [] as $experience)
                 <div>
                     <h3 class="text-[16px] font-semibold leading-[24px] text-[#181c1e]">{{ $experience['title'] }}</h3>
                     <p class="mt-[4px] text-[16px] leading-[26px] text-[#414751]">{{ $experience['body'] }}</p>
                 </div>
             @endforeach
+        </section>
+
+        <section id="m-inclusions" data-reveal class="flex flex-col gap-[16px] pt-[16px]" @if (empty($activity['included']) && empty($activity['excluded'])) hidden @endif>
+            <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Inclusions</h2>
+
+            @foreach ([["What's Included", $activity['included'] ?? [], '✓', 'text-[#15803d]'], ["What's Excluded", $activity['excluded'] ?? [], '✕', 'text-[#b91c1c]']] as [$title, $items, $mark, $tone])
+                @continue(empty($items))
+
+                <div>
+                    <h3 class="text-[16px] font-semibold leading-[24px] text-[#181c1e]">{{ $title }}</h3>
+                    <ul class="mt-[8px] flex flex-col gap-[6px]">
+                        @foreach ($items as $item)
+                            <li class="flex items-start gap-[8px] text-[16px] leading-[26px] text-[#414751]">
+                                <span class="{{ $tone }} shrink-0" aria-hidden="true">{{ $mark }}</span>
+                                {{ $item }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endforeach
+        </section>
+
+        <section id="m-important-info" data-reveal class="flex flex-col gap-[16px] pt-[16px]" @if (blank($activity['important_notes'])) hidden @endif>
+            <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Important Info</h2>
+
+            <ul class="flex flex-col gap-[8px]">
+                @foreach (preg_split('/\R+/', trim((string) $activity['important_notes'])) ?: [] as $note)
+                    @continue(blank($note))
+
+                    <li class="flex items-start gap-[8px] text-[16px] leading-[26px] text-[#414751]">
+                        <img src="{{ asset('images/icons/detail/info.svg') }}" alt="" class="mt-[4px] size-[16px] shrink-0">
+                        {{ ltrim($note, "-• \t") }}
+                    </li>
+                @endforeach
+            </ul>
         </section>
     </div>
 

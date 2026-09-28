@@ -54,6 +54,11 @@
             <img src="{{ asset('images/icons/admin/activity/filter-chevron.svg') }}" alt="" class="{{ $chevron }}">
         </label>
 
+        {{-- Appears only once rows are ticked; posts to the bulk form outside this one. --}}
+        @if ($bulkDelete ?? false)
+            <x-admin.bulk-delete-button class="h-[36px] px-[16px] text-[14px]" />
+        @endif
+
         {{-- Reset --}}
         <a href="{{ $action }}" aria-label="Reset filters"
            class="flex size-[29px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#f1f4f6]">

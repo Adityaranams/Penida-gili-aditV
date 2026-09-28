@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\HotelRoom;
 use App\Models\Schedule;
 use App\Models\Vessel;
+use App\Support\BookingReport;
 use App\Support\Money;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -18,7 +18,7 @@ class DashboardController extends Controller
     /**
      * Admin dashboard — Figma node 1:6642.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $thisMonth = Booking::query()->where('created_at', '>=', now()->startOfMonth());
         $lastMonth = Booking::query()->whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()]);
@@ -31,14 +31,8 @@ class DashboardController extends Controller
         $activeVessels = Vessel::query()->active()->count();
         $totalVessels = Vessel::query()->count();
 
-        $transactions = Booking::query()
-            ->with(['bookable' => fn (MorphTo $morph) => $morph->morphWith([
-                Schedule::class => ['operator', 'vessel', 'fromPort', 'toPort'],
-                HotelRoom::class => ['hotel'],
-            ])])
-            ->latest()
-            ->take(5)
-            ->get();
+        // Same query as the Booking Report, so both pages always agree.
+        $transactions = BookingReport::filtered($request)->paginate(10)->withQueryString();
 
         return view('admin.dashboard', [
             'kpis' => [
@@ -47,8 +41,12 @@ class DashboardController extends Controller
                 ['icon' => 'kpi-boat.svg', 'label' => 'Active Boat', 'value' => "{$activeVessels}/{$totalVessels}", 'badge' => $activeVessels === $totalVessels ? 'Operational' : ($totalVessels - $activeVessels).' offline', 'badgeTone' => 'neutral'],
             ],
             'vessels' => $this->fleetStatus(),
-            'transactions' => $transactions->map->toReportRow(),
-            'transactionsSummary' => 'Showing '.min(5, $transactions->count()).' of '.number_format(Booking::query()->count()).' entries',
+            'transactions' => $transactions->getCollection()->map->toReportRow(),
+            'transactionsPaginator' => $transactions,
+            'transactionsFilters' => $request->only(['q', 'type']),
+            'transactionsSummary' => $transactions->total() === 0
+                ? 'No transactions match this filter'
+                : 'Showing '.$transactions->firstItem().'–'.$transactions->lastItem().' of '.number_format($transactions->total()).' entries',
         ]);
     }
 

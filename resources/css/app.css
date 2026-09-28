@@ -146,3 +146,20 @@
         transform: none;
     }
 }
+
+/* Copy written in the console's rich-text editor: only bold, italic, underline
+   and lists survive sanitising, so these are the only rules it needs. */
+.rich-text ul,
+.rich-text ol {
+    margin: 0.5em 0;
+    padding-left: 1.4em;
+}
+
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: 0.2em 0; }
+.rich-text p { margin: 0 0 0.6em; }
+.rich-text p:last-child { margin-bottom: 0; }
+.rich-text strong, .rich-text b { font-weight: 700; }
+.rich-text em, .rich-text i { font-style: italic; }
+.rich-text u { text-decoration: underline; }

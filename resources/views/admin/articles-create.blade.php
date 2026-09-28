@@ -36,13 +36,13 @@
             <button type="submit" form="article-form" name="submit_as" value="draft"
                     class="flex items-center gap-[8px] rounded-[8px] border border-[#c0c7d3] bg-surface px-[21px] py-[11px] font-jakarta text-[14px] font-semibold text-editorial-ink
                            transition-colors duration-300 hover:bg-[#f1f4f6]">
-                <img src="{{ asset('images/icons/admin/form-save.svg') }}" alt="" class="size-[13.5px]">
+                <x-admin.icon name="form-save.svg" class="size-[13.5px] bg-editorial" />
                 Save Draft
             </button>
             <button type="submit" form="article-form" name="submit_as" value="publish"
                     class="flex items-center gap-[8px] rounded-[8px] bg-editorial px-[24px] py-[10px] font-jakarta text-[14px] font-semibold text-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]
                            transition-transform duration-300 ease-smooth hover:-translate-y-0.5">
-                <img src="{{ asset('images/icons/admin/nav-article.svg') }}" alt="" class="size-[12px]">
+                <x-admin.icon name="nav-article.svg" class="size-[12px] bg-white" />
                 Publish Article
             </button>
         </x-slot:actions>

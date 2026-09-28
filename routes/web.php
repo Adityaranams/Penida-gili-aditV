@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/boat', [BoatOperatorController::class, 'index'])->name('boats.index');
-Route::get('/boat/{boat}', [BoatOperatorController::class, 'show'])->name('boats.show');
+Route::get('/boat/vessel/{vessel}', [BoatOperatorController::class, 'vessel'])->name('boats.vessel');
 Route::get('/boat/{boat}/order', [BoatOperatorController::class, 'order'])->name('boats.order');
 Route::post('/boat/{boat}/order', [BookingController::class, 'storeBoat'])->name('boats.book');
 
@@ -53,6 +53,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/boat', [Admin\VesselController::class, 'store'])->name('boats.store');
         Route::get('/boat/{vessel}/edit', [Admin\VesselController::class, 'edit'])->name('boats.edit');
         Route::put('/boat/{vessel}', [Admin\VesselController::class, 'update'])->name('boats.update');
+        Route::delete('/boat', [Admin\VesselController::class, 'bulkDestroy'])->name('boats.bulk-destroy');
         Route::delete('/boat/{vessel}', [Admin\VesselController::class, 'destroy'])->name('boats.destroy');
 
         Route::get('/schedule', [Admin\ScheduleController::class, 'index'])->name('schedules');
@@ -60,6 +61,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/schedule', [Admin\ScheduleController::class, 'store'])->name('schedules.store');
         Route::get('/schedule/{schedule}/edit', [Admin\ScheduleController::class, 'edit'])->name('schedules.edit');
         Route::put('/schedule/{schedule}', [Admin\ScheduleController::class, 'update'])->name('schedules.update');
+        Route::delete('/schedule', [Admin\ScheduleController::class, 'bulkDestroy'])->name('schedules.bulk-destroy');
         Route::delete('/schedule/{schedule}', [Admin\ScheduleController::class, 'destroy'])->name('schedules.destroy');
 
         Route::get('/activity', [Admin\ActivityController::class, 'index'])->name('activities');
@@ -67,7 +69,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/activity', [Admin\ActivityController::class, 'store'])->name('activities.store');
         Route::get('/activity/{activity}/edit', [Admin\ActivityController::class, 'edit'])->name('activities.edit');
         Route::put('/activity/{activity}', [Admin\ActivityController::class, 'update'])->name('activities.update');
-        Route::post('/activity/{activity}/duplicate', [Admin\ActivityController::class, 'duplicate'])->name('activities.duplicate');
+        Route::delete('/activity', [Admin\ActivityController::class, 'bulkDestroy'])->name('activities.bulk-destroy');
         Route::delete('/activity/{activity}', [Admin\ActivityController::class, 'destroy'])->name('activities.destroy');
 
         Route::get('/hotel', [Admin\HotelController::class, 'index'])->name('hotels');

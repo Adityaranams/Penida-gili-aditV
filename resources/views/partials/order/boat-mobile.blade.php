@@ -146,7 +146,7 @@
                 <p class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#414751]">Total Price</p>
                 <p data-quote-total class="text-[24px] font-bold leading-[32px] text-brand">{{ $order['total'] }}</p>
             </div>
-            <a href="{{ route('boats.show', $order['slug']) }}" class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#6b7588] underline">Change Selection</a>
+            <a href="{{ route('boats.index') }}" class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#6b7588] underline">Change Selection</a>
         </div>
 
         <button type="submit"

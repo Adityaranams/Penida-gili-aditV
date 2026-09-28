@@ -52,7 +52,7 @@
 
         <div class="mt-[24px] flex items-end justify-between border-t border-[rgba(192,199,211,0.3)] pt-[17px]">
             <div class="flex flex-col gap-[4px]">
-                <span class="text-[12px] leading-[18px] text-[#414751]">Mulai Dari</span>
+                <span class="text-[12px] leading-[18px] text-[#414751]">Start from</span>
                 <span class="text-[18px] font-bold leading-[27px] text-[#181c1e]">{{ $price }}</span>
             </div>
 

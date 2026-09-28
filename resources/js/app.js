@@ -9,6 +9,10 @@ import './order-email';
 import './admin-login';
 import './uploader';
 import './lightbox';
+import './repeater';
+import './bulk-select';
+import './rich-text';
+import './admin-transactions';
 
 /**
  * Reveal elements as they scroll into view.

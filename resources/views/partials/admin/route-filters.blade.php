@@ -34,8 +34,15 @@
                class="w-full rounded-[8px] border border-[#c0c7d3] bg-surface px-[17px] py-[10px] text-[16px] text-editorial-ink focus:outline-2 focus:outline-editorial">
     </label>
 
-    <button type="submit"
-            class="h-[46px] rounded-[8px] border border-[#c0c7d3] bg-surface px-[24px] text-[16px] text-editorial-ink transition-colors duration-300 hover:bg-[#f1f4f6]">
-        Filter
-    </button>
+    <span class="flex items-end gap-[12px]">
+        <button type="submit"
+                class="h-[46px] rounded-[8px] border border-[#c0c7d3] bg-surface px-[24px] text-[16px] text-editorial-ink transition-colors duration-300 hover:bg-[#f1f4f6]">
+            Filter
+        </button>
+
+        {{-- Appears only once rows are ticked; posts to the bulk form outside this one. --}}
+        @if ($bulkDelete ?? false)
+            <x-admin.bulk-delete-button />
+        @endif
+    </span>
 </form>

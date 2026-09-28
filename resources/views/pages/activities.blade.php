@@ -32,7 +32,7 @@
                 @include('components.place-card-mobile', [
                     'delay'       => $index * 90,
                     'name'        => $activity['name'],
-                    'description' => $activity['description'],
+                    'description' => $activity['plain_description'],
                     'rating'      => $activity['rating'],
                     'image'       => $activity['image_url'],
                     'meta'        => $activity['meta'],
@@ -53,7 +53,7 @@
                 @include('components.place-card', [
                     'delay'       => ($index % 3) * 90,
                     'name'        => $activity['name'],
-                    'description' => $activity['description'],
+                    'description' => $activity['plain_description'],
                     'rating'      => $activity['rating'],
                     'image'       => $activity['image_url'],
                     'meta'        => $activity['meta'],

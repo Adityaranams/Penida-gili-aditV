@@ -35,7 +35,8 @@ class VesselController extends Controller
     /** Add New Boat — Figma node 1:7132. */
     public function create(): View
     {
-        return $this->form(new Vessel(['status' => ListingStatus::Active, 'facilities' => ['Air Conditioning', 'Toilet', 'Life Jackets', 'Insurance']]));
+        // A brand-new boat starts with nothing ticked; the operator chooses what it carries.
+        return $this->form(new Vessel(['status' => ListingStatus::Active, 'facilities' => []]));
     }
 
     public function store(StoreVesselRequest $request): RedirectResponse
@@ -45,6 +46,8 @@ class VesselController extends Controller
             'code' => $request->input('code') ?: Vessel::nextCode(),
             'boat_operator_id' => $request->input('boat_operator_id') ?: BoatOperator::query()->orderBy('id')->value('id'),
         ]);
+
+        $this->syncTestimonials($request, $vessel);
 
         return redirect()->route('admin.boats')->with('flash', "{$vessel->name} added to the fleet.");
     }
@@ -56,7 +59,9 @@ class VesselController extends Controller
 
     public function update(StoreVesselRequest $request, Vessel $vessel): RedirectResponse
     {
-        $vessel->update($this->payload($request) + array_filter(['code' => $request->input('code')]));
+        $vessel->update($this->payload($request, $vessel) + array_filter(['code' => $request->input('code')]));
+
+        $this->syncTestimonials($request, $vessel);
 
         return redirect()->route('admin.boats')->with('flash', "{$vessel->name} updated.");
     }
@@ -68,6 +73,17 @@ class VesselController extends Controller
         return redirect()->route('admin.boats')->with('flash', "{$vessel->name} removed.");
     }
 
+    /** Delete everything ticked in the listing. */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $ids = $request->collect('ids')->filter()->all();
+        $removed = $ids ? Vessel::query()->whereKey($ids)->delete() : 0;
+
+        return back()->with('flash', $removed
+            ? $removed.' '.str('boat')->plural($removed).' removed.'
+            : 'Nothing was selected.');
+    }
+
     private function form(Vessel $vessel): View
     {
         return view('admin.boats-create', [
@@ -76,7 +92,7 @@ class VesselController extends Controller
                 'label' => $label,
                 'checked' => in_array($label, old('facilities', $vessel->facilities ?? []), true),
             ])->all(),
-            'types' => ['Catamaran Fast Ferry', 'Mono-hull Fastboat', 'Luxury Catamaran'],
+            'types' => ['Boat'],
             'publishModes' => [
                 ['value' => 'publish', 'label' => 'Publish Immediately', 'description' => 'Visible in the fleet and available for schedules right away'],
                 ['value' => 'draft', 'label' => 'Save as Draft', 'description' => 'Keep the boat hidden until you are ready'],
@@ -88,10 +104,42 @@ class VesselController extends Controller
         ]);
     }
 
-    /** @return array<string, mixed> */
-    private function payload(StoreVesselRequest $request): array
+    /**
+     * Save the "Guest Testimonials" rows: update the ones already on file,
+     * create the newly typed ones and drop whatever the admin ticked.
+     */
+    private function syncTestimonials(StoreVesselRequest $request, Vessel $vessel): void
     {
-        $data = $request->safe()->except(['photos', 'code', 'publish']);
+        foreach ($request->input('testimonials', []) as $row) {
+            $review = isset($row['id']) ? $vessel->reviews()->find($row['id']) : null;
+
+            if ($review && filter_var($row['remove'] ?? false, FILTER_VALIDATE_BOOL)) {
+                $review->delete();
+
+                continue;
+            }
+
+            // A row left completely blank is just an unused slot.
+            if (blank($row['name'] ?? null) || blank($row['quote'] ?? null)) {
+                continue;
+            }
+
+            $attributes = [
+                'name' => $row['name'],
+                'quote' => $row['quote'],
+                'stars' => (int) ($row['stars'] ?? 5),
+                'experienced_at' => filled($row['experienced_at'] ?? null) ? $row['experienced_at'].'-01' : null,
+                'is_published' => true,
+            ];
+
+            $review ? $review->update($attributes) : $vessel->reviews()->create($attributes);
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function payload(StoreVesselRequest $request, ?Vessel $vessel = null): array
+    {
+        $data = $request->safe()->except(['cover', 'photos', 'remove_photos', 'testimonials', 'code', 'publish']);
         $data['facilities'] = $request->input('facilities', []);
 
         // "Save as Draft" hides the boat regardless of the operational status picked below it.
@@ -99,8 +147,21 @@ class VesselController extends Controller
             ? ListingStatus::Draft->value
             : $request->input('status', ListingStatus::Active->value);
 
-        if ($photo = Uploads::store($request->file('photos.0'), 'vessels')) {
-            $data['image'] = $photo;
+        if ($cover = Uploads::store($request->file('cover'), 'vessels')) {
+            $data['image'] = $cover;
+        }
+
+        // Uploads are added to the gallery; photos only disappear when they were ticked for removal.
+        $dropped = $request->input('remove_photos', []);
+        $kept = collect($vessel?->gallery ?? [])
+            ->reject(fn (array $photo) => in_array($photo['image'], $dropped, true))
+            ->values()
+            ->all();
+
+        $gallery = [...$kept, ...Uploads::gallery($request->file('photos'), 'vessels', $request->string('name')->value())];
+
+        if ($gallery !== [] || $dropped !== []) {
+            $data['gallery'] = $gallery;
         }
 
         return $data;

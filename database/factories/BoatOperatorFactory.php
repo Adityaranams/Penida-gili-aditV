@@ -16,7 +16,7 @@ class BoatOperatorFactory extends Factory
             'tagline' => fake()->sentence(10),
             'rating' => fake()->randomFloat(1, 4.0, 5.0),
             'review_count' => fake()->numberBetween(10, 300),
-            'image' => 'boat-maruti.png',
+            'image' => null,
             'hero_image' => 'hero-boat-detail.png',
             'top_speed_knots' => fake()->numberBetween(25, 40),
             'capacity' => fake()->numberBetween(60, 150),

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ListingStatus;
 use App\Models\BoatOperator;
 use App\Models\Schedule;
+use App\Models\Vessel;
 use App\Support\BookingQuote;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -22,38 +24,40 @@ class BoatOperatorController extends Controller
         $to = $request->string('to')->trim()->value();
         $date = $request->date('date');
 
-        $operators = BoatOperator::query()
+        // The catalogue lists individual boats, so anything added in the console shows up here.
+        $boats = Vessel::query()
             ->active()
-            // Only what the public can actually book: drafts and retired boats stay out of the counts.
-            ->withCount([
-                'schedules as schedules_count' => fn (Builder $q) => $q->active(),
-                'vessels as vessels_count' => fn (Builder $q) => $q->active(),
-            ])
-            ->when($from || $to, fn (Builder $q) => $q->whereHas('schedules', fn (Builder $s) => $s->active()->betweenPorts($from, $to)))
-            ->orderByDesc('rating')
+            ->with('operator')
+            ->whereHas('operator', fn (Builder $q) => $q->active())
+            ->when($from || $to, fn (Builder $q) => $q->whereHas(
+                'operator.schedules',
+                fn (Builder $s) => $s->active()->betweenPorts($from, $to),
+            ))
+            ->with(['schedules' => fn ($q) => $q->active()])
+            ->orderBy('name')
             ->paginate(9)
             ->withQueryString();
 
         return view('pages.boats', [
-            'operators' => $operators,
+            'boats' => $boats,
             'search' => ['from' => $from, 'to' => $to, 'date' => $date?->toDateString(), 'guests' => $request->integer('guests') ?: null],
         ]);
     }
 
     /**
-     * Boat detail — Figma node 1:1179.
+     * One boat from the fleet — its own photos, specs and sailings.
      */
-    public function show(BoatOperator $boat): View
+    public function vessel(Vessel $vessel): View
     {
-        abort_unless($boat->is_active, 404);
+        abort_unless($vessel->status === ListingStatus::Active && $vessel->operator->is_active, 404);
 
-        $boat->load([
-            'vessels' => fn ($q) => $q->active()->orderBy('name'),
+        $vessel->load([
+            'operator',
             'schedules' => fn ($q) => $q->active()->with(['fromPort', 'toPort']),
-            'reviews' => fn ($q) => $q->where('is_published', true)->take(4),
+            'reviews' => fn ($q) => $q->where('is_published', true),
         ]);
 
-        return view('pages.boat-detail', ['boat' => $boat]);
+        return view('pages.boat-vessel', ['vessel' => $vessel]);
     }
 
     /**

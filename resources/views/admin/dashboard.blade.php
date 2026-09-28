@@ -92,27 +92,40 @@
     </section>
 
     {{-- Figma node 1:6763 — recent transactions --}}
-    <section data-reveal class="mt-[29px] overflow-hidden rounded-admin border border-[rgba(224,227,229,0.5)] bg-surface shadow-admin">
+    <section id="transactions" data-reveal class="mt-[29px] scroll-mt-[24px] overflow-hidden rounded-admin border border-[rgba(224,227,229,0.5)] bg-surface shadow-admin">
         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-editorial-line px-[24px] pb-[25px] pt-[24px]">
             <h2 class="text-[24px] font-semibold leading-[32px] text-editorial-ink">Recent Transactions</h2>
 
-            <div class="flex items-start gap-[8px]">
+            {{-- Search + product filter; both submit the same GET form so they combine. --}}
+            <form method="get" action="{{ route('admin.dashboard') }}" data-keep-anchor="#transactions" class="flex flex-wrap items-start gap-[8px]">
                 <label class="relative block">
-                    <span class="sr-only">Search passenger</span>
-                    <input type="search" placeholder="Search passenger..."
+                    <span class="sr-only">Search</span>
+                    <input type="search" name="q" value="{{ $transactionsFilters['q'] ?? '' }}" placeholder="Search..."
                            class="rounded-[6px] border border-editorial-line bg-[#f1f4f6] py-[8px] pl-[37px] pr-[17px] text-[14px] text-editorial-ink placeholder:text-[#6b7280] focus:outline-2 focus:outline-editorial">
                     <img src="{{ asset('images/icons/admin/search-sm.svg') }}" alt=""
                          class="pointer-events-none absolute left-[12px] top-1/2 size-[15px] -translate-y-1/2">
                 </label>
 
-                <button type="button"
-                        class="flex items-center gap-[4px] rounded-[6px] border border-editorial-line px-[13px] py-[7px] text-[14px] leading-[20px] text-editorial-ink transition-colors hover:bg-[#f1f4f6]">
-                    <img src="{{ asset('images/icons/admin/filter.svg') }}" alt="" class="h-[9px] w-[13.5px]">
-                    Filter
-                </button>
-            </div>
+                <label class="relative block">
+                    <span class="sr-only">Filter by product</span>
+                    <select name="type" onchange="this.form.requestSubmit()"
+                            class="appearance-none rounded-[6px] border border-editorial-line bg-surface px-[34px] py-[8px] text-center text-[14px] leading-[20px] text-editorial-ink focus:outline-2 focus:outline-editorial">
+                        <option value="">All</option>
+                        @foreach (['boat' => 'Boat', 'activity' => 'Activity', 'hotel' => 'Hotel'] as $value => $label)
+                            <option value="{{ $value }}" @selected(($transactionsFilters['type'] ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <img src="{{ asset('images/icons/admin/filter.svg') }}" alt=""
+                         class="pointer-events-none absolute left-[13px] top-1/2 h-[9px] w-[13.5px] -translate-y-1/2">
+                </label>
+            </form>
         </div>
 
-        @include('partials.admin.transactions-table', ['rows' => $transactions, 'summary' => $transactionsSummary])
+        @include('partials.admin.transactions-table', [
+            'rows' => $transactions,
+            'summary' => $transactionsSummary,
+            'paginator' => $transactionsPaginator,
+            'anchor' => '#transactions',
+        ])
     </section>
 @endsection

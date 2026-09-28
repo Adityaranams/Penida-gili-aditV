@@ -5,7 +5,7 @@
     'rating',
     'image',
     'routes' => 2,
-    'vessels' => 2,
+    'vessels' => 0,
     'href' => '#',
     'delay' => 0,
 ])
@@ -18,10 +18,12 @@
     </div>
 
     <div class="p-[24px]">
-        <div class="flex items-center gap-[4px]">
-            <img src="{{ asset('images/icons/mobile/list/star-blue.svg') }}" alt="" class="h-[11px] w-[12px]">
-            <span class="text-[14px] font-bold leading-[20px] tracking-[0.7px] text-[#414751]">{{ $rating }}</span>
-        </div>
+        @if ($rating)
+            <div class="flex items-center gap-[4px]">
+                <img src="{{ asset('images/icons/mobile/list/star-blue.svg') }}" alt="" class="h-[11px] w-[12px]">
+                <span class="text-[14px] font-bold leading-[20px] tracking-[0.7px] text-[#414751]">{{ $rating }}</span>
+            </div>
+        @endif
 
         <h2 class="mt-[8px] text-[24px] font-semibold leading-[32px] text-[#181c1e]">{{ $name }}</h2>
 
@@ -31,11 +33,11 @@
             <div class="flex items-center gap-[24px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#414751]">
                 <span class="flex items-center gap-[8px]">
                     <img src="{{ asset('images/icons/mobile/list/routes.svg') }}" alt="" class="size-[10.5px]">
-                    {{ $routes }} Routes
+                    {{ $routes }} {{ \Illuminate\Support\Str::plural('Route', $routes) }}
                 </span>
                 <span class="flex items-center gap-[8px]">
                     <img src="{{ asset('images/icons/mobile/list/boat.svg') }}" alt="" class="h-[11.7px] w-[10.8px]">
-                    {{ $vessels }} {{ \Illuminate\Support\Str::plural('Boat', $vessels) }}
+                    {{ $vessels }} Pax
                 </span>
             </div>
 

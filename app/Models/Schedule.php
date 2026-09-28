@@ -80,6 +80,29 @@ class Schedule extends Model
             ->when(filled($to), fn (Builder $q) => $q->whereHas('toPort', fn (Builder $p) => $portMatches($p, trim($to))));
     }
 
+    /** "Daily", or the weekdays it sails in calendar order ("Mon, Wed, Fri"). */
+    protected function daysLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            $days = array_values(array_intersect($week, $this->days ?? []));
+
+            return $days === [] || count($days) === 7 ? 'Daily' : implode(', ', $days);
+        });
+    }
+
+    /** The first date from `$from` (today by default) this schedule actually sails. */
+    public function nextDate(?Carbon $from = null): Carbon
+    {
+        $date = ($from ?? Carbon::today())->copy();
+
+        for ($i = 0; $i < 7 && ! $this->operatesOn($date); $i++) {
+            $date->addDay();
+        }
+
+        return $date;
+    }
+
     /** Whether the schedule runs on the given date (null days = daily). */
     public function operatesOn(Carbon $date): bool
     {

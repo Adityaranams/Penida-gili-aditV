@@ -40,7 +40,7 @@ class CatalogManagementTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.boats.create'))
             ->assertOk()
-            ->assertSeeInOrder(['Publishing Settings', 'Publish Immediately', 'Save as Draft', 'Boat Details', 'Initial Status', 'Boat Photos', 'Boat Facilities'])
+            ->assertSeeInOrder(['Publishing Settings', 'Publish Immediately', 'Save as Draft', 'Boat Details', 'Initial Status', 'Cover Photo', 'Boat Gallery', 'Boat Facilities'])
             ->assertDontSee('Top Speed')
             ->assertDontSee('Vessel Code')
             ->assertDontSee('Last Inspection Date')
@@ -79,7 +79,7 @@ class CatalogManagementTest extends TestCase
             'capacity' => 150,
             'status' => ListingStatus::Active->value,
             'facilities' => ['Toilet', 'Life Jackets'],
-            'photos' => [UploadedFile::fake()->image('queen.jpg')],
+            'cover' => UploadedFile::fake()->image('queen.jpg'),
         ])->assertRedirect(route('admin.boats'));
 
         $vessel = Vessel::query()->sole();
@@ -101,6 +101,117 @@ class CatalogManagementTest extends TestCase
 
         $this->actingAs($this->admin)->delete(route('admin.boats.destroy', $vessel))->assertRedirect(route('admin.boats'));
         $this->assertModelMissing($vessel);
+    }
+
+    public function test_editing_a_vessel_adds_to_the_gallery_and_only_drops_ticked_photos(): void
+    {
+        Storage::fake('public');
+        $vessel = Vessel::factory()->create(['gallery' => null]);
+
+        $base = [
+            'name' => $vessel->name,
+            'type' => $vessel->type,
+            'capacity' => $vessel->capacity,
+            'status' => ListingStatus::Active->value,
+        ];
+
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'photos' => [UploadedFile::fake()->image('deck.jpg')],
+        ])->assertRedirect(route('admin.boats'));
+
+        $this->assertCount(1, $vessel->fresh()->gallery);
+
+        // A second upload is added to the first, not swapped in for it.
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'photos' => [UploadedFile::fake()->image('cabin.jpg')],
+        ])->assertRedirect(route('admin.boats'));
+
+        $gallery = $vessel->fresh()->gallery;
+        $this->assertCount(2, $gallery);
+
+        // Saving without uploads keeps everything; ticking a photo removes just that one.
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base)->assertRedirect(route('admin.boats'));
+        $this->assertCount(2, $vessel->fresh()->gallery);
+
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'remove_photos' => [$gallery[0]['image']],
+        ])->assertRedirect(route('admin.boats'));
+
+        $this->assertSame([$gallery[1]['image']], array_column($vessel->fresh()->gallery, 'image'));
+    }
+
+    public function test_admin_can_add_edit_and_remove_guest_testimonials_on_a_boat(): void
+    {
+        $vessel = Vessel::factory()->create();
+
+        $base = [
+            'name' => $vessel->name,
+            'type' => $vessel->type,
+            'capacity' => $vessel->capacity,
+            'status' => ListingStatus::Active->value,
+        ];
+
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'testimonials' => [
+                ['name' => 'Sarah Jenkins', 'stars' => 5, 'quote' => 'Incredibly smooth ride.', 'experienced_at' => '2023-10'],
+                ['name' => '', 'stars' => 5, 'quote' => ''],
+            ],
+        ])->assertRedirect(route('admin.boats'));
+
+        $review = $vessel->reviews()->sole();
+        $this->assertSame('Sarah Jenkins', $review->name);
+        $this->assertSame('Traveled Oct 2023', $review->traveled);
+
+        $this->actingAs($this->admin)->get(route('boats.vessel', $vessel))->assertOk()->assertSee('Incredibly smooth ride.');
+
+        // Editing the row keeps the same review; ticking Remove deletes it.
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'testimonials' => [['id' => $review->id, 'name' => 'Sarah J.', 'stars' => 4, 'quote' => 'Great crew.']],
+        ])->assertRedirect(route('admin.boats'));
+
+        $this->assertSame('Sarah J.', $vessel->reviews()->sole()->name);
+
+        $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
+            'testimonials' => [['id' => $review->id, 'name' => 'Sarah J.', 'quote' => 'Great crew.', 'remove' => '1']],
+        ])->assertRedirect(route('admin.boats'));
+
+        $this->assertCount(0, $vessel->reviews()->get());
+    }
+
+    public function test_listings_can_delete_several_rows_at_once(): void
+    {
+        $keep = Vessel::factory()->create(['name' => 'Keeper']);
+        $drop = Vessel::factory()->count(2)->create();
+
+        $this->actingAs($this->admin)->get(route('admin.boats'))
+            ->assertOk()
+            ->assertSee('name="ids[]"', false)
+            ->assertSee('form="bulk-delete"', false);
+
+        $this->actingAs($this->admin)
+            ->from(route('admin.boats'))
+            ->delete(route('admin.boats.bulk-destroy'), ['ids' => $drop->pluck('id')->all()])
+            ->assertRedirect(route('admin.boats'));
+
+        $this->assertSame(['Keeper'], Vessel::query()->pluck('name')->all());
+
+        // Nothing ticked deletes nothing.
+        $this->actingAs($this->admin)->from(route('admin.boats'))->delete(route('admin.boats.bulk-destroy'), [])->assertRedirect();
+        $this->assertCount(1, Vessel::query()->get());
+
+        $schedules = Schedule::factory()->count(2)->create();
+        $this->actingAs($this->admin)
+            ->from(route('admin.schedules'))
+            ->delete(route('admin.schedules.bulk-destroy'), ['ids' => $schedules->pluck('id')->all()])
+            ->assertRedirect(route('admin.schedules'));
+        $this->assertCount(0, Schedule::query()->get());
+
+        $activities = Activity::factory()->count(2)->create();
+        $this->actingAs($this->admin)
+            ->from(route('admin.activities'))
+            ->delete(route('admin.activities.bulk-destroy'), ['ids' => [$activities->first()->id]])
+            ->assertRedirect(route('admin.activities'));
+        $this->assertCount(1, Activity::query()->get());
     }
 
     public function test_vessel_listing_filters_by_status_and_search(): void
@@ -145,6 +256,20 @@ class CatalogManagementTest extends TestCase
             ->assertSee('Banjar Nyuh Nusa Penida')->assertDontSee('Gili Trawangan');
         $this->actingAs($this->admin)->get(route('admin.schedules', ['date' => '2030-05-11']))
             ->assertSee('Gili Trawangan');
+
+        // The row spells out the date it sails: the filtered day, or the next one when no filter is set.
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['date' => '2030-05-11']))
+            ->assertSee('Sat, 11 May 2030')
+            ->assertSee('Sat, Sun');
+
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['q' => 'Gili']))
+            ->assertSee($weekend->nextDate()->format('D, d M Y'));
+
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['q' => 'Nusa Penida']))
+            ->assertSee(now()->format('D, d M Y'))
+            ->assertSee('Daily');
+
+        $this->assertSame('Daily', $daily->days_label);
     }
 
     public function test_schedule_form_matches_figma_and_derives_ports_operator_and_status(): void
@@ -254,6 +379,91 @@ class CatalogManagementTest extends TestCase
         $this->assertSame('kecak-fire-dance', $activity->slug);
     }
 
+    public function test_activity_added_in_the_console_renders_without_seeded_content(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)->post(route('admin.activities.store'), [
+            'name' => 'Sunrise Paddle',
+            'category' => 'Water Sports',
+            'description' => 'Paddle out at first light.',
+            'place_label' => 'Sanur',
+            'rating' => '4.6',
+            'price_adult' => '120.000',
+            'max_daily_capacity' => '20',
+            'cancellation_policy' => 'free_24h',
+            'instant_confirmation' => 'on',
+            'status' => ListingStatus::Active->value,
+            'cover' => UploadedFile::fake()->image('paddle.jpg'),
+        ])->assertRedirect(route('admin.activities'));
+
+        $activity = Activity::query()->where('name', 'Sunrise Paddle')->sole();
+        $this->assertSame('4.6', (string) $activity->rating);
+        Storage::disk('public')->assertExists($activity->image);
+        $this->assertNull($activity->highlights);
+
+        // The detail page used to fatal on the seeded-only columns.
+        $this->get(route('activities.show', $activity))
+            ->assertOk()
+            ->assertSee('Sunrise Paddle')
+            ->assertSee('Free cancellation')
+            ->assertSee('Instant confirmation');
+
+        $this->get(route('activities.index'))->assertOk()->assertSee('Sunrise Paddle');
+
+        // A second upload is added to the gallery rather than swapped in for the first.
+        $base = ['name' => $activity->name, 'category' => $activity->category, 'description' => $activity->description,
+            'price_adult' => '120.000', 'max_daily_capacity' => '20', 'status' => ListingStatus::Active->value];
+
+        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [UploadedFile::fake()->image('a.jpg')]]);
+        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [UploadedFile::fake()->image('b.jpg')]]);
+
+        $this->assertCount(2, $activity->fresh()->gallery);
+    }
+
+    public function test_activity_description_keeps_basic_formatting_and_experiences_are_editable(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.activities.store'), [
+            'name' => 'Cliff Walk',
+            'category' => 'Wildlife & Nature',
+            'description' => '<p>Walk the <strong>cliff path</strong>.</p><ul><li>Sunset view</li></ul><script>alert(1)</script>',
+            'price_adult' => '90.000',
+            'max_daily_capacity' => '15',
+            'status' => ListingStatus::Active->value,
+            'experiences' => [
+                ['title' => 'Sunset over Kelingking', 'body' => 'The path opens onto the headland just before dusk.'],
+                ['title' => '', 'body' => ''],
+            ],
+        ])->assertRedirect(route('admin.activities'));
+
+        $activity = Activity::query()->where('name', 'Cliff Walk')->sole();
+
+        // Bold and lists survive; anything else is stripped before it is stored.
+        $this->assertStringContainsString('<strong>cliff path</strong>', $activity->description);
+        $this->assertStringContainsString('<li>Sunset view</li>', $activity->description);
+        $this->assertStringNotContainsString('<script>', $activity->description);
+        $this->assertSame('Walk the cliff path. Sunset view', $activity->plain_description);
+
+        // Blank rows are dropped; the rest become the "Experiences Awaiting You" entries.
+        $this->assertCount(1, $activity->experiences);
+        $this->assertSame('Sunset over Kelingking', $activity->experiences[0]['title']);
+
+        $this->get(route('activities.show', $activity))
+            ->assertOk()
+            ->assertSee('<strong>cliff path</strong>', false)
+            ->assertSee('Sunset over Kelingking');
+
+        // The card shows the copy without markup.
+        $this->get(route('activities.index'))->assertOk()->assertDontSee('<strong>cliff path</strong>', false);
+
+        // A fresh form leaves the operating days for the admin to pick.
+        $this->actingAs($this->admin)->get(route('admin.activities.create'))
+            ->assertOk()
+            ->assertSee('Add Experience')
+            ->assertDontSee('value="Mon" checked', false)
+            ->assertDontSee('value="Sun" checked', false);
+    }
+
     public function test_activity_editor_follows_figma_and_stores_the_new_fields(): void
     {
         $this->actingAs($this->admin)->get(route('admin.activities.create'))
@@ -262,44 +472,44 @@ class CatalogManagementTest extends TestCase
                 'Save Draft', 'Publish Activity',
                 'Basic Information', 'Short Catchy Tagline / Badge', 'Full Description',
                 'Schedule & Operational Hours', 'Select All Days', 'Instant Confirmation', 'Cancellation Policy',
-                'Experience Highlights & Inclusions', '+ Add inclusion...', '+ Add exclusion...', 'Important Notes',
-                'Media & Gallery Upload', '/ 8 Photos', 'Hero Featured Cover',
+                'Inclusions &amp; Important Info', '+ Add inclusion...', '+ Add exclusion...', 'Important Info',
+                'Cover Photo', 'Media & Gallery Upload', '/ 8 Photos',
                 'Publishing Status', 'Public Visibility',
-                'Pricing & Quota Capacity', 'Original / Strikethrough Price', 'Domestic vs Foreign Price', 'Max Daily Capacity / Quota', 'pax / day',
+                'Pricing & Quota Capacity', 'Original / Strikethrough Price', 'Max Daily Capacity / Quota', 'pax / day',
             ])
-            ->assertDontSee('Location Details');
+            ->assertDontSee('Location Details')
+            // Scheduled publishing and dual-tier pricing were dropped from the editor.
+            ->assertDontSee('Go live at specific timestamp')
+            ->assertDontSee('Domestic vs Foreign Price');
 
-        // Chips arrive comma separated; the header "Save Draft" button overrides the radio;
-        // "Scheduled" keeps the draft with a go-live timestamp.
+        // Chips arrive comma separated; the header "Save Draft" button overrides the radio.
         $this->actingAs($this->admin)->post(route('admin.activities.store'), [
             'name' => 'Manta Point Snorkel',
             'category' => 'Water Sports',
             'description' => "Swim with mantas.\nBoat departs at dawn.",
             'price_adult' => '350.000',
-            'dual_pricing' => 'on',
             'max_daily_capacity' => '24',
             'included' => 'Snorkel gear, Lunch box',
             'excluded' => 'Hotel transfer',
             'instant_confirmation' => 'on',
             'cancellation_policy' => 'free_48h',
             'important_notes' => 'Bring reef-safe sunscreen.',
-            'status' => 'scheduled',
-            'publish_at' => '2026-10-01 08:00',
+            'status' => ListingStatus::Draft->value,
             'is_public' => 'on',
         ])->assertSessionHasNoErrors()->assertRedirect(route('admin.activities'));
 
         $activity = Activity::query()->sole();
         $this->assertSame(ListingStatus::Draft, $activity->status);
-        $this->assertSame('2026-10-01 08:00', $activity->publish_at->format('Y-m-d H:i'));
+        $this->assertNull($activity->publish_at);
         $this->assertSame(['Snorkel gear', 'Lunch box'], $activity->included);
         $this->assertSame(['Hotel transfer'], $activity->excluded);
-        $this->assertTrue($activity->dual_pricing);
+        $this->assertFalse($activity->dual_pricing);
         $this->assertSame(24, $activity->max_daily_capacity);
         $this->assertTrue($activity->is_public);
         $this->assertSame('free_48h', $activity->cancellation_policy);
         $this->assertSame('Swim with mantas.', $activity->intro);
 
-        // Publish Activity wins over the radios and clears the schedule; foreign price is dropped when single-tier.
+        // Publish Activity wins over the radios.
         $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), [
             'name' => 'Manta Point Snorkel',
             'category' => 'Water Sports',
@@ -323,8 +533,12 @@ class CatalogManagementTest extends TestCase
 
     public function test_activity_toolbar_filters_by_search_category_status_and_sort(): void
     {
-        Activity::factory()->create(['name' => 'Kecak Dance', 'category' => 'Cultural Show', 'location' => 'Uluwatu', 'status' => ListingStatus::Active, 'sold_count' => 10, 'rating' => 4.9]);
-        Activity::factory()->create(['name' => 'Manta Snorkel', 'category' => 'Water Sports', 'location' => 'Manta Bay', 'status' => ListingStatus::Draft, 'sold_count' => 500, 'rating' => 4.1]);
+        $kecak = Activity::factory()->create(['name' => 'Kecak Dance', 'category' => 'Cultural Show', 'location' => 'Uluwatu', 'status' => ListingStatus::Active, 'rating' => 4.9]);
+        $manta = Activity::factory()->create(['name' => 'Manta Snorkel', 'category' => 'Water Sports', 'location' => 'Manta Bay', 'status' => ListingStatus::Draft, 'rating' => 4.1]);
+
+        // "Most Booked" counts confirmed passengers, so give Manta the bigger party.
+        Booking::factory()->confirmed()->for($kecak, 'bookable')->create(['adults' => 1, 'children' => 1]);
+        Booking::factory()->confirmed()->for($manta, 'bookable')->create(['adults' => 4, 'children' => 2]);
 
         $this->actingAs($this->admin)->get(route('admin.activities'))
             ->assertOk()
@@ -345,12 +559,16 @@ class CatalogManagementTest extends TestCase
             ->assertSeeInOrder(['Kecak Dance', 'Manta Snorkel']);
     }
 
-    public function test_activity_listing_shows_figma_columns_and_duplicates_as_a_draft(): void
+    public function test_activity_listing_shows_figma_columns_with_edit_and_delete_actions(): void
     {
         $activity = Activity::factory()->create([
             'name' => 'Kecak Fire Dance', 'category' => 'Cultural Show', 'location' => 'Uluwatu, Badung',
-            'price_adult' => 180_000, 'price_was' => 250_000, 'sold_count' => 520, 'status' => ListingStatus::Active,
+            'price_adult' => 180_000, 'price_was' => 250_000, 'place_label' => 'Uluwatu', 'status' => ListingStatus::Active,
         ]);
+
+        // Total Sold adds up the passengers on confirmed bookings; pending ones do not count.
+        Booking::factory()->confirmed()->for($activity, 'bookable')->create(['adults' => 3, 'children' => 2]);
+        Booking::factory()->for($activity, 'bookable')->create(['adults' => 9, 'children' => 0, 'status' => BookingStatus::Pending]);
 
         $this->actingAs($this->admin)->get(route('admin.activities'))
             ->assertOk()
@@ -358,18 +576,13 @@ class CatalogManagementTest extends TestCase
             ->assertSee('cat-cultural-show.svg')
             ->assertSee('IDR 180.000')
             ->assertSee('Rp. 250.000')
-            ->assertSee('520')
-            ->assertSee(route('admin.activities.duplicate', $activity));
-
-        $this->actingAs($this->admin)->post(route('admin.activities.duplicate', $activity))
-            ->assertRedirect();
-
-        $copy = Activity::query()->where('id', '!=', $activity->id)->sole();
-        $this->assertSame('Kecak Fire Dance (Copy)', $copy->name);
-        $this->assertSame(ListingStatus::Draft, $copy->status);
-        $this->assertSame(0, $copy->sold_count);
-        $this->assertNotSame($activity->slug, $copy->slug);
-        $this->assertSame(180_000, $copy->price_adult);
+            ->assertSee('Uluwatu')
+            ->assertSee('>5<', false)
+            // Only edit and delete remain in the Actions column.
+            ->assertSee(route('admin.activities.edit', $activity))
+            ->assertSee(route('admin.activities.destroy', $activity))
+            ->assertDontSee('action-view.svg')
+            ->assertDontSee('action-duplicate.svg');
     }
 
     public function test_admin_can_create_a_hotel_with_rooms_and_sync_them_on_update(): void
@@ -637,6 +850,43 @@ class CatalogManagementTest extends TestCase
         Booking::factory()->confirmed()->create();
 
         $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Total Revenue');
+    }
+
+    public function test_dashboard_transactions_mirror_the_booking_report_and_are_read_only(): void
+    {
+        $schedule = Schedule::factory()->create();
+        $hotelRoom = HotelRoom::factory()->create();
+
+        Booking::factory()->count(12)->for($schedule, 'bookable')->create(['customer_name' => 'Boat Guest']);
+        $stay = Booking::factory()->for($hotelRoom, 'bookable')->create(['customer_name' => 'Hotel Guest', 'status' => BookingStatus::Pending]);
+
+        // Ten rows per page, the rest on page two.
+        $this->actingAs($this->admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Showing 1–10 of 13 entries')
+            ->assertSee(route('admin.dashboard', ['page' => 2]), false);
+
+        $this->actingAs($this->admin)->get(route('admin.dashboard', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('Showing 11–13 of 13 entries');
+
+        // Filtering narrows to one product.
+        $this->actingAs($this->admin)->get(route('admin.dashboard', ['type' => 'hotel']))
+            ->assertOk()
+            ->assertSee('Hotel Guest')
+            ->assertDontSee('Boat Guest');
+
+        // The panel is read-only: status changes belong to the Booking Report.
+        $this->actingAs($this->admin)->get(route('admin.dashboard'))
+            ->assertDontSee('Approve booking')
+            ->assertDontSee(route('admin.report.update', $stay->reference));
+
+        // Both pages list the same reservations under the same filter.
+        $dashboard = $this->actingAs($this->admin)->get(route('admin.dashboard', ['q' => 'Hotel Guest']));
+        $report = $this->actingAs($this->admin)->get(route('admin.report', ['q' => 'Hotel Guest']));
+
+        $dashboard->assertOk()->assertSee('Hotel Guest')->assertDontSee('Boat Guest');
+        $report->assertOk()->assertSee('Hotel Guest')->assertDontSee('Boat Guest');
     }
 
     public function test_hotel_toolbar_filters_by_search_destination_stars_and_status(): void

@@ -1,8 +1,9 @@
 {{-- Full-size photo viewer. Opened by resources/js/lightbox.js from any [data-lightbox] control;
      controls with a shared data-lightbox-group can be paged through with the arrows. --}}
-<dialog id="photo-lightbox" class="m-auto max-h-[92vh] max-w-[92vw] rounded-[16px] border-0 bg-transparent p-0 backdrop:bg-black/80">
+<dialog id="photo-lightbox" class="m-auto max-h-[96vh] max-w-[96vw] rounded-[16px] border-0 bg-transparent p-0 backdrop:bg-black/80">
     <div class="relative">
-        <img data-lightbox-image src="" alt="" class="max-h-[88vh] max-w-[92vw] rounded-[16px] object-contain">
+        {{-- h-[88vh] rather than max-h: a small photo is scaled up to fill the viewer too. --}}
+        <img data-lightbox-image src="" alt="" class="h-[88vh] w-auto max-w-[94vw] rounded-[16px] object-contain">
 
         <button type="button" data-lightbox-close aria-label="Close photo"
                 class="absolute right-[12px] top-[12px] flex size-[38px] items-center justify-center rounded-full bg-black/60 text-[22px] leading-none text-white transition-colors hover:bg-black/80">

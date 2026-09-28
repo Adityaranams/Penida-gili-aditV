@@ -138,35 +138,37 @@
         </div>
     </section>
 
-    {{-- Top Boat Operators (1:2472) --}}
+    {{-- Top rated boats (1:2472) --}}
     <section class="bg-white px-[16px] pb-[64px] pt-[2px]">
         <div data-reveal>
-            <p class="text-[14px] font-semibold uppercase leading-[20px] tracking-[0.7px] text-[#2563eb]">Top Boat Operators</p>
-            <h2 class="mt-[7px] text-[30px] font-bold leading-[37.5px] text-[#0f172a]">Top Boat Operators</h2>
-            <p class="mt-[16px] text-[14px] leading-[20px] text-[#64748b]">Explore Indonesia's leading boat operators and their premium vessel fleets.</p>
+            <p class="text-[14px] font-semibold uppercase leading-[20px] tracking-[0.7px] text-[#2563eb]">Top Rated Boats</p>
+            <h2 class="mt-[7px] text-[30px] font-bold leading-[37.5px] text-[#0f172a]">Top Rated Boats</h2>
+            <p class="mt-[16px] text-[14px] leading-[20px] text-[#64748b]">Our best-reviewed fast boats, ranked by the ratings guests give them.</p>
         </div>
 
         <div class="mt-[40px] flex flex-col gap-[32px]">
-            @foreach ($operators->take(2) as $index => $operator)
-                <a href="{{ route('boats.show', $operator) }}" data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
+            @foreach ($topBoats->take(2) as $index => $boat)
+                <a href="{{ route('boats.vessel', $boat) }}" data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
                    class="block overflow-hidden rounded-[16px] border border-[#f3f4f6] bg-white p-px shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
                     <div class="h-[192px] w-full overflow-hidden rounded-t-[15px]">
-                        <img src="{{ $operator['image_url'] }}" alt="{{ $operator['name'] }}" class="size-full object-cover">
+                        <img src="{{ $boat['image_url'] }}" alt="{{ $boat['name'] }}" class="size-full object-cover">
                     </div>
                     <div class="p-[20px]">
-                        <div class="flex items-center gap-[4px]">
-                            <img src="{{ asset('images/icons/mobile/star.svg') }}" alt="" class="h-[11px] w-[12px]">
-                            <span class="text-[14px] font-bold leading-[20px] text-[#0f172a]">{{ $operator['rating'] }}</span>
-                        </div>
-                        <h3 class="mt-[8px] pb-[8px] text-[18px] font-bold leading-[28px] text-[#0f172a]">{{ $operator['name'] }}</h3>
+                        @if ($boat['rating'])
+                            <div class="flex items-center gap-[4px]">
+                                <img src="{{ asset('images/icons/mobile/star.svg') }}" alt="" class="h-[11px] w-[12px]">
+                                <span class="text-[14px] font-bold leading-[20px] text-[#0f172a]">{{ $boat['rating'] }}</span>
+                            </div>
+                        @endif
+                        <h3 class="mt-[8px] pb-[8px] text-[18px] font-bold leading-[28px] text-[#0f172a]">{{ $boat['name'] }}</h3>
                         <div class="mt-[8px] flex items-center justify-between border-t border-[#e5e7eb] pt-[17px] text-[12px] leading-[16px] text-[#64748b]">
                             <span class="flex items-center gap-[4px]">
                                 <img src="{{ asset('images/icons/mobile/routes.svg') }}" alt="" class="size-[10.5px]">
-                                {{ $operator['schedules_count'] }} Routes
+                                {{ $boat['route_count'] }} {{ \Illuminate\Support\Str::plural('Route', $boat['route_count']) }}
                             </span>
                             <span class="flex items-center gap-[4px]">
                                 <img src="{{ asset('images/icons/mobile/boat.svg') }}" alt="" class="h-[11.7px] w-[10.8px]">
-                                {{ $operator['vessels_count'] }} {{ \Illuminate\Support\Str::plural('Boat', $operator['vessels_count']) }}
+                                {{ $boat['capacity'] }} Pax
                             </span>
                         </div>
                     </div>

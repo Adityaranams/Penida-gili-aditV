@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ListingStatus;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\BoatOperator;
@@ -9,6 +10,7 @@ use App\Models\Hotel;
 use App\Models\HotelRoom;
 use App\Models\Port;
 use App\Models\Schedule;
+use App\Models\Vessel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,52 +18,71 @@ class PublicPagesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_lists_active_operators_only(): void
+    public function test_home_lists_the_best_rated_bookable_boats_only(): void
     {
-        $active = BoatOperator::factory()->create(['name' => 'Visible Fast Boat']);
-        BoatOperator::factory()->inactive()->create(['name' => 'Hidden Fast Boat']);
+        $operator = BoatOperator::factory()->create();
+        Vessel::factory()->for($operator, 'operator')->create(['name' => 'Island Runner', 'rating' => 4.9]);
+        Vessel::factory()->for($operator, 'operator')->create(['name' => 'Retired Runner', 'rating' => 5.0, 'status' => ListingStatus::Draft]);
+        Vessel::factory()->for(BoatOperator::factory()->inactive(), 'operator')->create(['name' => 'Hidden Runner', 'rating' => 5.0]);
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee($active->name)
-            ->assertDontSee('Hidden Fast Boat');
+            ->assertSee('Island Runner')
+            ->assertDontSee('Retired Runner')
+            ->assertDontSee('Hidden Runner');
     }
 
-    public function test_boat_search_narrows_to_operators_sailing_the_route(): void
+    public function test_boat_listing_shows_active_boats_only(): void
+    {
+        $operator = BoatOperator::factory()->create();
+        $live = Vessel::factory()->for($operator, 'operator')->create(['name' => 'Island Runner']);
+        Vessel::factory()->for($operator, 'operator')->create(['name' => 'Dry Docked', 'status' => ListingStatus::Inactive]);
+        Vessel::factory()->for(BoatOperator::factory()->inactive(), 'operator')->create(['name' => 'Retired Operator Boat']);
+
+        $this->get(route('boats.index'))
+            ->assertOk()
+            ->assertSee($live->name)
+            ->assertDontSee('Dry Docked')
+            ->assertDontSee('Retired Operator Boat');
+    }
+
+    public function test_boat_search_narrows_to_boats_sailing_the_route(): void
     {
         $sanur = Port::factory()->create(['name' => 'Sanur', 'area' => 'Bali']);
         $penida = Port::factory()->create(['name' => 'Nusa Penida', 'area' => 'Nusa Penida']);
         $gili = Port::factory()->create(['name' => 'Gili Trawangan', 'area' => 'Gili']);
 
         $match = BoatOperator::factory()->create(['name' => 'Penida Express']);
+        Vessel::factory()->for($match, 'operator')->create(['name' => 'Penida Runner']);
         Schedule::factory()->for($match, 'operator')->create(['from_port_id' => $sanur->id, 'to_port_id' => $penida->id]);
 
         $other = BoatOperator::factory()->create(['name' => 'Gili Runner']);
+        Vessel::factory()->for($other, 'operator')->create(['name' => 'Gili Glider']);
         Schedule::factory()->for($other, 'operator')->create(['from_port_id' => $sanur->id, 'to_port_id' => $gili->id]);
 
         $this->get(route('boats.index', ['from' => 'Sanur', 'to' => 'penida']))
             ->assertOk()
-            ->assertSee('Penida Express')
-            ->assertDontSee('Gili Runner');
+            ->assertSee('Penida Runner')
+            ->assertDontSee('Gili Glider');
     }
 
-    public function test_boat_detail_shows_only_active_schedules(): void
+    public function test_boat_page_shows_only_its_own_active_schedules(): void
     {
-        $operator = BoatOperator::factory()->create();
-        $live = Schedule::factory()->for($operator, 'operator')->create(['departure_time' => '07:15']);
-        Schedule::factory()->for($operator, 'operator')->draft()->create(['departure_time' => '21:45']);
+        $vessel = Vessel::factory()->create();
+        $live = Schedule::factory()->for($vessel->operator, 'operator')->create(['vessel_id' => $vessel->id, 'departure_time' => '07:15']);
+        Schedule::factory()->for($vessel->operator, 'operator')->draft()->create(['vessel_id' => $vessel->id, 'departure_time' => '21:45']);
 
-        $this->get(route('boats.show', $operator))
+        $this->get(route('boats.vessel', $vessel))
             ->assertOk()
             ->assertSee($live->departure_label)
             ->assertDontSee('09:45 PM');
     }
 
-    public function test_inactive_operator_is_not_found(): void
+    public function test_boat_of_an_inactive_operator_is_not_found(): void
     {
-        $operator = BoatOperator::factory()->inactive()->create();
+        $vessel = Vessel::factory()->for(BoatOperator::factory()->inactive(), 'operator')->create();
 
-        $this->get(route('boats.show', $operator))->assertNotFound();
+        $this->get(route('boats.vessel', $vessel))->assertNotFound();
     }
 
     public function test_boat_order_page_prices_the_selected_schedule(): void

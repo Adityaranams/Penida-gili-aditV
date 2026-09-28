@@ -18,26 +18,22 @@ class StoreActivityRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // "Scheduled" is a publishing choice, not a listing status: it stays a draft
-        // until publish_at. The header buttons (Save Draft / Publish Activity) win over the radios.
+        // The header buttons (Save Draft / Publish Activity) win over the status radios.
         $status = match ($this->input('submit_as')) {
             'draft' => ListingStatus::Draft->value,
             'publish' => ListingStatus::Active->value,
-            default => $this->input('status') === 'scheduled' ? ListingStatus::Draft->value : $this->input('status'),
+            default => $this->input('status'),
         };
 
         // Prices arrive formatted ("75.000"); normalise to whole rupiah.
         $this->merge([
             'status' => $status,
-            'scheduled' => $this->input('status') === 'scheduled' && $this->input('submit_as') !== 'publish',
             'price_adult' => $this->digits('price_adult'),
             'price_child' => $this->digits('price_child'),
             'price_was' => $this->digits('price_was'),
-            'price_foreign' => $this->digits('price_foreign'),
             'max_daily_capacity' => $this->digits('max_daily_capacity'),
             // Checkbox switches post "on"; the boolean rule wants a real flag.
             'instant_confirmation' => $this->boolean('instant_confirmation'),
-            'dual_pricing' => $this->boolean('dual_pricing'),
             'is_public' => $this->boolean('is_public'),
         ]);
     }
@@ -63,28 +59,25 @@ class StoreActivityRequest extends FormRequest
             'price_adult' => ['required', 'integer', 'min:0'],
             'price_child' => ['nullable', 'integer', 'min:0'],
             'price_was' => ['nullable', 'integer', 'min:0'],
-            'dual_pricing' => ['nullable', 'boolean'],
-            'price_foreign' => ['nullable', 'integer', 'min:0'],
+            // A convenience for the editor: the stored discount is the gap between the two prices.
+            'discount_percent' => ['nullable', 'integer', 'min:0', 'max:95'],
             'price_note' => ['nullable', 'string', 'max:160'],
             'max_daily_capacity' => ['required', 'integer', 'min:1', 'max:10000'],
             'included' => ['nullable', 'string', 'max:2000'],
             'excluded' => ['nullable', 'string', 'max:2000'],
             'important_notes' => ['nullable', 'string', 'max:3000'],
             'status' => ['required', Rule::enum(ListingStatus::class)],
-            'scheduled' => ['nullable', 'boolean'],
-            'publish_at' => ['nullable', 'date', Rule::requiredIf(fn () => $this->boolean('scheduled'))],
             'is_public' => ['nullable', 'boolean'],
             'submit_as' => ['nullable', Rule::in(['draft', 'publish'])],
+            'rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
+            'experiences' => ['nullable', 'array', 'max:12'],
+            'experiences.*.title' => ['nullable', 'string', 'max:120'],
+            'experiences.*.body' => ['nullable', 'string', 'max:1000'],
+            'remove_photos' => ['nullable', 'array'],
+            'remove_photos.*' => ['string'],
             'cover' => ['nullable', 'image', 'max:10240'],
             'gallery' => ['nullable', 'array', 'max:8'],
             'gallery.*' => ['image', 'max:10240'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'publish_at.required' => 'Pick the date and time the activity should go live.',
         ];
     }
 

@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
-    'boat_operator_id', 'name', 'code', 'type', 'capacity', 'top_speed_knots', 'engine',
-    'facilities', 'image', 'status', 'inspected_at',
+    'boat_operator_id', 'name', 'code', 'type', 'description', 'capacity', 'rating', 'top_speed_knots', 'engine',
+    'facilities', 'image', 'gallery', 'status', 'inspected_at',
 ])]
 class Vessel extends Model
 {
@@ -24,7 +25,9 @@ class Vessel extends Model
     protected function casts(): array
     {
         return [
+            'rating' => 'decimal:1',
             'facilities' => 'array',
+            'gallery' => 'array',
             'status' => ListingStatus::class,
             'inspected_at' => 'date',
         ];
@@ -35,6 +38,12 @@ class Vessel extends Model
         return $this->belongsTo(BoatOperator::class, 'boat_operator_id');
     }
 
+    /** Testimonials written for this boat only. */
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable')->latest('experienced_at');
+    }
+
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class);
@@ -42,13 +51,44 @@ class Vessel extends Model
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(fn () => ImagePath::url($this->image ?: 'boat-maruti.png', 'boats'));
+        return Attribute::get(fn () => ImagePath::url($this->image, 'boats'));
+    }
+
+    /**
+     * Gallery entries with resolved URLs, falling back to the cover photo.
+     *
+     * @return list<array{image: string, alt: string, url: string}>
+     */
+    protected function galleryPhotos(): Attribute
+    {
+        return Attribute::get(function () {
+            $items = collect($this->gallery ?: [])
+                ->map(fn (array $photo) => $photo + ['url' => ImagePath::url($photo['image'], 'boats')]);
+
+            return $items->isNotEmpty()
+                ? $items->values()->all()
+                : [['image' => $this->image, 'alt' => $this->name, 'url' => $this->image_url]];
+        });
+    }
+
+    /** Distinct port pairs this boat currently sails. */
+    protected function routeCount(): Attribute
+    {
+        return Attribute::get(fn () => $this->schedules
+            ->where('status', ListingStatus::Active)
+            ->unique(fn ($schedule) => $schedule->from_port_id.'-'.$schedule->to_port_id)
+            ->count());
     }
 
     #[Scope]
     protected function active(Builder $query): Builder
     {
         return $query->where('status', ListingStatus::Active);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'code';
     }
 
     /** Next free code in the SFB-000 sequence. */

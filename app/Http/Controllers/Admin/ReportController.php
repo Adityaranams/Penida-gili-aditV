@@ -5,11 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\HotelRoom;
-use App\Models\Schedule;
 use App\Models\Vessel;
-use Illuminate\Contracts\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Support\BookingReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -23,7 +20,7 @@ class ReportController extends Controller
      */
     public function index(Request $request): View
     {
-        $bookings = $this->filtered($request)->paginate(10)->withQueryString();
+        $bookings = BookingReport::filtered($request)->paginate(10)->withQueryString();
 
         return view('admin.report', [
             'bookings' => $bookings,
@@ -51,7 +48,7 @@ class ReportController extends Controller
     /** CSV export of the current filter. */
     public function export(Request $request): StreamedResponse
     {
-        $query = $this->filtered($request);
+        $query = BookingReport::filtered($request);
         $filename = 'bookings-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($query): void {
@@ -68,32 +65,5 @@ class ReportController extends Controller
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv']);
-    }
-
-    private function filtered(Request $request): Builder
-    {
-        return Booking::query()
-            ->with(['bookable' => fn (MorphTo $morph) => $morph->morphWith([
-                Schedule::class => ['operator', 'vessel', 'fromPort', 'toPort'],
-                HotelRoom::class => ['hotel'],
-            ])])
-            // "Search Route" (Figma 1:10428) also matches the passenger / reference; "Sanur to Nusa Penida"
-            // matches both ports, a single word matches either end.
-            ->when($request->filled('q'), function (Builder $q) use ($request): void {
-                $term = $request->string('q')->value();
-                [$from, $to] = array_pad(preg_split('/\s+(?:to|-|→)\s+/iu', $term, 2), 2, null);
-
-                $q->where(fn (Builder $w) => $w
-                    ->search($term)
-                    ->orWhereHasMorph('bookable', [Schedule::class], fn (Builder $s) => $s
-                        ->whereHas('fromPort', fn (Builder $p) => $p->where('name', 'like', "%{$from}%"))
-                        ->when($to, fn (Builder $x) => $x->whereHas('toPort', fn (Builder $p) => $p->where('name', 'like', "%{$to}%"))))
-                    ->when(! $to, fn (Builder $x) => $x->orWhereHasMorph('bookable', [Schedule::class], fn (Builder $s) => $s
-                        ->whereHas('toPort', fn (Builder $p) => $p->where('name', 'like', "%{$from}%")))));
-            })
-            ->when($request->filled('vessel'), fn (Builder $q) => $q->whereHasMorph('bookable', [Schedule::class], fn (Builder $s) => $s->where('vessel_id', $request->integer('vessel'))))
-            ->when($request->filled('status'), fn (Builder $q) => $q->where('status', $request->string('status')->value()))
-            ->when($request->filled('date'), fn (Builder $q) => $q->whereDate('travel_date', $request->date('date')))
-            ->latest();
     }
 }

@@ -1,11 +1,11 @@
-{{-- Figma node 1:413 — Destination Card --}}
+{{-- Figma node 1:413 — catalogue card for one boat. --}}
 @props([
     'name',
     'description',
     'rating',
     'image',
-    'routes' => 2,
-    'vessels' => 2,
+    'routes' => 0,
+    'capacity' => null,
     'href' => '#',
     'delay' => 0,
 ])
@@ -19,24 +19,27 @@
              class="size-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105">
     </div>
 
-    <div class="mt-[23px] flex items-center gap-[19px]">
-        <img src="{{ asset('images/icons/stars.svg') }}" alt="" class="h-[24.5px] w-[138.7px]">
-        <span class="text-[16px] leading-[30px] text-ink">{{ $rating }}</span>
-    </div>
+    @if ($rating)
+        <div class="mt-[23px] flex items-center gap-[19px]">
+            <x-rating-stars :rating="$rating" />
+            <span class="text-[16px] leading-[30px] text-ink">{{ $rating }}</span>
+        </div>
+    @endif
 
     <h3 class="mt-[23px] text-[24px] leading-[30px] text-ink transition-colors duration-300 group-hover:text-brand">{{ $name }}</h3>
 
-    <p class="mt-[23px] line-clamp-2 text-[16px] leading-[30px] text-ink-muted">{{ $description }}</p>
+    <p class="mt-[12px] line-clamp-2 text-[16px] leading-[30px] text-ink-muted">{{ $description }}</p>
 
     <div class="mt-auto flex items-center justify-between">
         <div class="flex items-center gap-[54px]">
             <span class="flex items-center gap-[12px] text-[16px] leading-[30px] text-ink-muted">
                 <img src="{{ asset('images/icons/icon-routes.svg') }}" alt="" class="size-[18px]">
-                {{ $routes }} Routes
+                {{ $routes }} {{ \Illuminate\Support\Str::plural('Route', $routes) }}
             </span>
+
             <span class="flex items-center gap-[12px] text-[16px] leading-[30px] text-ink-muted">
                 <img src="{{ asset('images/icons/icon-boat.svg') }}" alt="" class="h-[18px] w-[16.6px]">
-                {{ $vessels }} {{ \Illuminate\Support\Str::plural('Boat', $vessels) }}
+                {{ $capacity }} Pax
             </span>
         </div>
 

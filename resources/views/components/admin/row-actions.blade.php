@@ -1,8 +1,8 @@
 {{-- Edit / delete controls at the end of each console row (Figma 1:6977).
      Delete is a real form so it works without JavaScript; the confirm() is a courtesy. --}}
-@props(['label', 'editHref' => null, 'deleteAction' => null])
+@props(['label', 'editHref' => null, 'deleteAction' => null, 'align' => 'end'])
 
-<span class="flex items-center justify-end gap-[4px]">
+<span class="flex items-center gap-[4px] {{ $align === 'center' ? 'justify-center' : 'justify-end' }}">
     @if ($editHref)
         <a href="{{ $editHref }}" aria-label="Edit {{ $label }}"
            class="flex size-[32px] items-center justify-center rounded-full transition-colors duration-300 hover:bg-[#f1f4f6]">
