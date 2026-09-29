@@ -132,7 +132,7 @@ class HotelController extends Controller
     /** @return array<string, mixed> */
     private function payload(StoreHotelRequest $request, ?Hotel $existing = null): array
     {
-        $data = $request->safe()->except(['cover', 'gallery', 'rooms', 'amenities', 'submit_as', 'publish']);
+        $data = $request->safe()->except(['cover', 'gallery', 'rooms', 'amenities', 'submit_as', 'publish', 'remove_photos']);
         $picked = $request->input('amenities', []);
         $data['amenities'] = array_values(array_filter(self::AMENITIES, fn ($a) => in_array($a['label'], $picked, true)));
         // Only the editor's own tags survive, so the description is safe to print unescaped.
@@ -144,7 +144,16 @@ class HotelController extends Controller
             $data['image'] = 'nusa-penida-resort.png';
         }
 
-        if ($gallery = Uploads::gallery($request->file('gallery'), 'hotels', $request->string('name')->value())) {
+        // Uploads are added to the gallery; photos only disappear when they were ticked for removal.
+        $dropped = $request->input('remove_photos', []);
+        $kept = collect($existing?->gallery ?? [])
+            ->reject(fn (array $photo) => in_array($photo['image'], $dropped, true))
+            ->values()
+            ->all();
+
+        $gallery = [...$kept, ...Uploads::gallery($request->file('gallery'), 'hotels', $request->string('name')->value())];
+
+        if ($gallery !== [] || $dropped !== []) {
             $data['gallery'] = $gallery;
         }
 

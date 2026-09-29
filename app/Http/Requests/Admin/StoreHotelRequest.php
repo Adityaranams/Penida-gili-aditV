@@ -51,6 +51,8 @@ class StoreHotelRequest extends FormRequest
             'cover' => ['nullable', 'image', 'max:12288'],
             'gallery' => ['nullable', 'array', 'max:12'],
             'gallery.*' => ['image', 'max:12288'],
+            'remove_photos' => ['nullable', 'array'],
+            'remove_photos.*' => ['string'],
             'rooms' => ['required', 'array', 'min:1'],
             'rooms.*.id' => ['nullable', 'integer'],
             'rooms.*.name' => ['required', 'string', 'max:120'],

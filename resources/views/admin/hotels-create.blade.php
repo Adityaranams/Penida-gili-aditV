@@ -238,13 +238,25 @@
                                 <span class="truncate font-jakarta text-[12px] font-medium leading-[16px] text-white">{{ $hotel->name ?: 'Property cover' }}</span>
                             </span>
                         </label>
+                        {{-- New uploads are added to these; tick a photo to drop it when the hotel is saved. --}}
                         @foreach ($hotel->gallery ?? [] as $photo)
+                            @php($path = $photo['image'] ?? $photo)
+
                             <figure class="relative aspect-[4/3] overflow-hidden rounded-[8px] border border-[rgba(192,199,211,0.5)] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                                <img src="{{ \App\Support\ImagePath::url($photo['image'] ?? $photo, 'hotels/detail') }}" alt="{{ $photo['alt'] ?? '' }}" class="size-full object-cover">
+                                <img src="{{ \App\Support\ImagePath::url($path, 'hotels/detail') }}" alt="{{ $photo['alt'] ?? '' }}" class="size-full object-cover">
                                 <figcaption class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[rgba(0,0,0,0.7)] via-transparent to-transparent p-[10px]">
                                     <span class="font-jakarta text-[10px] font-bold uppercase leading-[24px] tracking-[0.5px] text-[#9fcaff]">Gallery</span>
                                     <span class="truncate font-jakarta text-[12px] font-medium leading-[16px] text-white">{{ $photo['alt'] ?? $hotel->name }}</span>
                                 </figcaption>
+
+                                <label class="absolute inset-0 cursor-pointer">
+                                    <input type="checkbox" name="remove_photos[]" value="{{ $path }}" class="peer sr-only">
+                                    <span class="absolute right-[8px] top-[8px] flex size-[28px] items-center justify-center rounded-full bg-white/90 text-[16px] leading-none text-[#b91c1c] shadow-sm
+                                                 transition-colors peer-checked:bg-[#b91c1c] peer-checked:text-white">&times;</span>
+                                    <span class="absolute inset-0 hidden items-center justify-center bg-[rgba(185,28,28,0.65)] font-jakarta text-[12px] font-semibold text-white peer-checked:flex">
+                                        Removed on save
+                                    </span>
+                                </label>
                             </figure>
                         @endforeach
                     </div>

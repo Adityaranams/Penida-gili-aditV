@@ -18,6 +18,7 @@ use App\Models\Schedule;
 use App\Models\User;
 use App\Models\Vessel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -272,5 +273,116 @@ class ConsoleCrudTest extends TestCase
                 }
             }
         }
+    }
+
+    /**
+     * Uploads have to survive the whole round trip: stored on the public disk, kept on the
+     * record, and served from /storage on the page the traveller sees.
+     */
+    public function test_uploaded_images_are_stored_and_served_for_every_module(): void
+    {
+        Storage::fake('public');
+        BoatOperator::factory()->create();
+
+        // Activity: cover plus a gallery photo.
+        $this->actingAs($this->admin)->post(route('admin.activities.store'), [
+            'name' => 'Cliff Walk',
+            'category' => 'Wildlife & Nature',
+            'description' => 'Walk the cliff path.',
+            'price_adult' => '90.000',
+            'max_daily_capacity' => '15',
+            'status' => ListingStatus::Active->value,
+            'cover' => $this->fakeImage('cliff.jpg'),
+            'gallery' => [$this->fakeImage('view.jpg')],
+        ])->assertRedirect(route('admin.activities'));
+
+        $activity = Activity::query()->sole();
+        $this->assertStringStartsWith('uploads/activities/', $activity->image);
+        Storage::disk('public')->assertExists($activity->image);
+        Storage::disk('public')->assertExists($activity->gallery[0]['image']);
+
+        $this->get(route('activities.show', $activity))->assertOk()->assertSee('/storage/'.$activity->image, false);
+
+        // Editing adds to the gallery and drops only the photo that was ticked.
+        $first = $activity->gallery[0]['image'];
+        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), [
+            'name' => 'Cliff Walk',
+            'category' => 'Wildlife & Nature',
+            'description' => 'Walk the cliff path.',
+            'price_adult' => '90.000',
+            'max_daily_capacity' => '15',
+            'status' => ListingStatus::Active->value,
+            'gallery' => [$this->fakeImage('second.jpg')],
+            'remove_photos' => [$first],
+        ])->assertRedirect(route('admin.activities'));
+
+        $gallery = $activity->fresh()->gallery;
+        $this->assertCount(1, $gallery);
+        $this->assertNotSame($first, $gallery[0]['image']);
+
+        // Hotel: cover plus gallery, with the same add / remove behaviour.
+        $hotelPayload = [
+            'name' => 'Cliff Edge Resort',
+            'category' => 'Resort',
+            'stars' => 5,
+            'description' => 'Perched on the cliffs.',
+            'address' => 'Nusa Penida, Bali',
+            'publish' => 'publish',
+            'rooms' => [['name' => 'Deluxe', 'guests' => 2, 'price_per_night' => '2.500.000', 'stock' => 2]],
+        ];
+
+        $this->actingAs($this->admin)->post(route('admin.hotels.store'), $hotelPayload + [
+            'cover' => $this->fakeImage('resort.jpg'),
+            'gallery' => [$this->fakeImage('pool.jpg')],
+        ])->assertRedirect(route('admin.hotels'));
+
+        $hotel = Hotel::query()->sole();
+        Storage::disk('public')->assertExists($hotel->image);
+        $poolPhoto = $hotel->gallery[0]['image'];
+
+        // The card carries the cover; the detail hero shows the gallery.
+        $this->get(route('hotels.index'))->assertOk()->assertSee('/storage/'.$hotel->image, false);
+        $this->get(route('hotels.show', $hotel))->assertOk()->assertSee('/storage/'.$poolPhoto, false);
+
+        $this->actingAs($this->admin)->put(route('admin.hotels.update', $hotel), $hotelPayload + [
+            'gallery' => [$this->fakeImage('spa.jpg')],
+            'remove_photos' => [$poolPhoto],
+        ])->assertRedirect(route('admin.hotels'));
+
+        $hotelGallery = $hotel->fresh()->gallery;
+        $this->assertCount(1, $hotelGallery);
+        $this->assertNotSame($poolPhoto, $hotelGallery[0]['image']);
+        // The cover is kept when no new one is uploaded.
+        $this->assertSame($hotel->image, $hotel->fresh()->image);
+
+        // Boat: cover photo reaches the public vessel page.
+        $this->actingAs($this->admin)->post(route('admin.boats.store'), [
+            'name' => 'Sanjaya Ocean Queen',
+            'type' => 'Catamaran',
+            'capacity' => 150,
+            'status' => ListingStatus::Active->value,
+            'cover' => $this->fakeImage('queen.jpg'),
+        ])->assertRedirect(route('admin.boats'));
+
+        $vessel = Vessel::query()->sole();
+        Storage::disk('public')->assertExists($vessel->image);
+        $this->get(route('boats.vessel', $vessel))->assertOk()->assertSee('/storage/'.$vessel->image, false);
+
+        // Article: cover reaches the blog.
+        $author = Author::factory()->create();
+
+        $this->actingAs($this->admin)->post(route('admin.articles.store'), [
+            'title' => 'Crossing the Badung Strait',
+            'excerpt' => 'Morning crossings are calmest.',
+            'category' => 'Boat Tips',
+            'body' => 'Morning departures give the calmest water.',
+            'author_id' => $author->id,
+            'status' => 'published',
+            'cover' => $this->fakeImage('strait.jpg'),
+        ])->assertRedirect(route('admin.articles'));
+
+        $article = Article::query()->sole();
+        Storage::disk('public')->assertExists($article->image);
+        $this->get(route('articles.show', $article))->assertOk()->assertSee('/storage/'.$article->image, false);
     }
 }
