@@ -98,8 +98,6 @@
                             </fieldset>
                         </div>
 
-                        <x-admin.field label="Partner Label" name="partner_label" :value="$hotel->partner_label" placeholder="Direct Fastboat Partner" />
-
                         {{-- Rich Text Property Description (1:7572): toolbar strip mirrors the design; plain text is stored --}}
                         <div class="flex flex-col gap-[8px]">
                             <label for="hotel-description" class="{{ $label }}">Property Description</label>

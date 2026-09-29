@@ -36,7 +36,6 @@ class StoreHotelRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:160'],
             'category' => ['required', 'string', 'max:40'],
-            'partner_label' => ['nullable', 'string', 'max:80'],
             'stars' => ['required', 'integer', 'min:1', 'max:5'],
             'description' => ['required', 'string', 'max:3000'],
             'region' => ['nullable', 'string', 'max:80'],
