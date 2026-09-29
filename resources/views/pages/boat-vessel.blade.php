@@ -138,7 +138,8 @@
         </div>
 
         {{-- Sailings for this boat only --}}
-        <aside class="lg:sticky lg:top-8 lg:self-start">
+        {{-- The card stays where it sits in the page; it used to follow the scroll. --}}
+        <aside class="lg:self-start">
             <div data-reveal class="rounded-detail border border-editorial-rule bg-surface p-[28px] shadow-editorial">
                 <h2 class="text-[28px] font-bold leading-[38px] text-editorial-ink">Routes &amp; Schedule</h2>
 
