@@ -16,6 +16,7 @@
         :columns="['Boat Name', 'Type', 'Capacity', 'Status', 'Actions']"
         :center-columns="['Type', 'Capacity', 'Status', 'Actions']"
         :paginator="$boats"
+        entity="boats"
         :selectable="true">
 
         <x-slot:filters>

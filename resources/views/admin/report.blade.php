@@ -13,7 +13,8 @@
         :action-href="route('admin.report.export', request()->query())"
         :columns="['Passenger', 'Route', 'Date & Time', 'Amount', 'Status', 'Action']"
         :center-columns="['Route', 'Date & Time', 'Amount', 'Status', 'Action']"
-        :paginator="$bookings">
+        :paginator="$bookings"
+        entity="bookings">
 
         {{-- Filters & Search (1:10428): same Search Route / Boat / Date / Filter bar as the Schedule console --}}
         <x-slot:toolbar>

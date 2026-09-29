@@ -13,6 +13,7 @@
         :action-href="route('admin.hotels.create')"
         :columns="['Hotel / Resort', 'Location', 'Rating', 'Room Types', 'Starting Price / Night', 'Status', 'Bookings (Mo)', 'Actions']"
         :paginator="$hotels"
+        entity="hotels"
         panel-title="Registered Partner Accommodations"
         :panel-badge="$activeCount.' of '.$totalCount.' Active Listed'">
 

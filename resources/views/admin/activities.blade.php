@@ -16,6 +16,7 @@
         :columns="['Activity Details', 'Category', 'Location', 'Price / Pax', 'Status', 'Total Sold', 'Actions']"
         :center-columns="['Category', 'Location', 'Price / Pax', 'Status', 'Total Sold', 'Actions']"
         :paginator="$activities"
+        entity="activities"
         :selectable="true">
 
         <x-slot:toolbar>

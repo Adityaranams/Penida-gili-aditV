@@ -14,6 +14,7 @@
     'centerColumns' => [],
     'summary' => '',
     'paginator' => null,
+    'entity' => 'entries',
     'panelTitle' => null,
     'panelBadge' => null,
     'selectable' => false,
@@ -93,7 +94,7 @@
 
     <div class="flex flex-wrap items-center justify-between gap-4 border-t border-[rgba(192,199,211,0.2)] bg-[rgba(241,244,246,0.3)] px-[24px] py-[16px]">
         @if ($paginator)
-            <x-admin.pagination :paginator="$paginator" />
+            <x-admin.pagination :paginator="$paginator" :entity="$entity" />
         @else
             <p class="text-[14px] leading-[20px] text-editorial-body">{{ $summary }}</p>
         @endif

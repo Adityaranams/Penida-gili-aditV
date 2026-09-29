@@ -63,26 +63,11 @@
     </table>
 </div>
 
+{{-- Same footer bar as every console listing (Figma 1:10660). --}}
 <div class="flex flex-wrap items-center justify-between gap-4 border-t border-editorial-line px-[24px] py-[16px]">
-    <p class="text-[14px] leading-[20px] text-editorial-body">{{ $summary }}</p>
-
-    @php
-        $base = 'rounded-[6px] border border-editorial-line px-[14px] py-[6px] text-[14px] transition-colors';
-        $enabled = $base.' text-editorial-ink hover:bg-[#f1f4f6]';
-        $disabled = $base.' cursor-not-allowed text-editorial-meta opacity-50';
-    @endphp
-
-    <div class="flex gap-[8px]">
-        @if ($paginator?->previousPageUrl())
-            <a href="{{ $paginator->previousPageUrl().$anchor }}" rel="prev" class="{{ $enabled }}">Prev</a>
-        @else
-            <span class="{{ $disabled }}">Prev</span>
-        @endif
-
-        @if ($paginator?->nextPageUrl())
-            <a href="{{ $paginator->nextPageUrl().$anchor }}" rel="next" class="{{ $enabled }}">Next</a>
-        @else
-            <span class="{{ $disabled }}">Next</span>
-        @endif
-    </div>
+    @if ($paginator)
+        <x-admin.pagination :paginator="$paginator" entity="bookings" :anchor="$anchor" />
+    @else
+        <p class="text-[14px] leading-[20px] text-editorial-body">{{ $summary }}</p>
+    @endif
 </div>

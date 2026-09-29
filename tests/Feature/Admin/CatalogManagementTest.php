@@ -1014,6 +1014,32 @@ class CatalogManagementTest extends TestCase
             ->assertDontSee('name="keywords"', false);
     }
 
+    public function test_every_console_listing_carries_the_pagination_bar(): void
+    {
+        Activity::factory()->create();
+        Article::factory()->create();
+        Vessel::factory()->create();
+        Hotel::factory()->create();
+        Schedule::factory()->create();
+        Booking::factory()->create();
+
+        // One page of rows still shows Prev / 1 / Next, so every screen has the same footer.
+        $pages = [
+            'admin.activities' => 'activities',
+            'admin.articles' => 'articles',
+            'admin.boats' => 'boats',
+            'admin.hotels' => 'hotels',
+            'admin.schedules' => 'schedules',
+            'admin.report' => 'bookings',
+        ];
+
+        foreach ($pages as $route => $entity) {
+            $this->actingAs($this->admin)->get(route($route))
+                ->assertOk()
+                ->assertSeeInOrder(['Showing 1 to', $entity, 'Prev', '>1<', 'Next'], false);
+        }
+    }
+
     public function test_report_lists_bookings_and_changes_status(): void
     {
         $booking = Booking::factory()->create(['customer_name' => 'Report Person', 'status' => BookingStatus::Pending]);
@@ -1075,12 +1101,12 @@ class CatalogManagementTest extends TestCase
         // Ten rows per page, the rest on page two.
         $this->actingAs($this->admin)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Showing 1–10 of 13 entries')
+            ->assertSee('Showing 1 to 10 of 13 bookings')
             ->assertSee(route('admin.dashboard', ['page' => 2]), false);
 
         $this->actingAs($this->admin)->get(route('admin.dashboard', ['page' => 2]))
             ->assertOk()
-            ->assertSee('Showing 11–13 of 13 entries');
+            ->assertSee('Showing 11 to 13 of 13 bookings');
 
         // Filtering narrows to one product.
         $this->actingAs($this->admin)->get(route('admin.dashboard', ['type' => 'hotel']))

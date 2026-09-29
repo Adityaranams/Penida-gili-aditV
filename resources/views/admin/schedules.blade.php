@@ -18,6 +18,7 @@
         :columns="['Route & Time', 'Date', 'Boat', 'Base Price', 'Status', 'Actions']"
         :center-columns="['Date', 'Boat', 'Base Price', 'Status', 'Actions']"
         :paginator="$schedules"
+        entity="schedules"
         :selectable="true">
 
         <x-slot:toolbar>

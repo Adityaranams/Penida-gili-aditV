@@ -18,6 +18,7 @@
         :columns="['Article Details', 'Category', 'Author & Role', 'Views', 'Published Date', 'Status', 'Quick Actions']"
         :center-columns="['Category', 'Author & Role', 'Views', 'Published Date', 'Status', 'Quick Actions']"
         :paginator="$articles"
+        entity="articles"
         :selectable="true">
 
         <x-slot:toolbar>
