@@ -18,14 +18,16 @@
     {{-- Cards sit level; hovering lifts one out of the row (Figma shows card 2 in its hover state). --}}
     <div class="mt-[57px] lg:mt-[135px] grid [&>*]:min-w-0 items-stretch gap-[44px] sm:grid-cols-2 xl:grid-cols-4">
         @foreach ($services as $index => $service)
+            {{-- Fixed heights for the icon and title blocks keep the body copy on the same
+                 baseline across the row, whatever the title wraps to. --}}
             <article data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
-                     class="group flex w-full max-w-[347px] flex-col items-center rounded-card border-2 border-line-card bg-surface px-[44px] pb-[44px] pt-[39px] text-center shadow-card
+                     class="group mx-auto flex h-full w-full max-w-[347px] flex-col items-center rounded-card border-2 border-line-card bg-surface px-[44px] pb-[44px] pt-[39px] text-center shadow-card
                      transition-[transform,box-shadow,border-color] duration-500 ease-smooth
                      hover:-translate-y-[28px] hover:border-brand/20 hover:shadow-card-hover">
                 <img src="{{ asset('images/icons/service/'.$service['icon']) }}" alt=""
                      class="size-[90px] transition-transform duration-500 ease-smooth group-hover:scale-110">
-                <h3 class="mt-[32px] text-[24px] leading-[39px] text-ink">{{ $service['title'] }}</h3>
-                <p class="mt-[33px] text-[16px] leading-[30px] text-ink-muted">{{ $service['body'] }}</p>
+                <h3 class="mt-[32px] flex min-h-[78px] items-center text-[24px] leading-[39px] text-ink">{{ $service['title'] }}</h3>
+                <p class="mt-[20px] text-[16px] leading-[30px] text-ink-muted">{{ $service['body'] }}</p>
             </article>
         @endforeach
     </div>

@@ -132,11 +132,8 @@
                                     </p>
 
                                     <a href="{{ route('hotels.order', [$hotel['slug'], 'room' => $room['id']]) }}"
-                                       @class([
-                                           'rounded-full px-[30px] py-[15px] text-[17.4px] font-semibold leading-[25px] tracking-[0.87px] shadow-sm transition-transform duration-300 ease-smooth hover:-translate-y-0.5',
-                                           'bg-brand text-white' => $loop->first,
-                                           'border border-[rgba(192,199,211,0.5)] bg-editorial-rule text-editorial-ink' => ! $loop->first,
-                                       ])>
+                                       class="rounded-full bg-brand px-[30px] py-[15px] text-[17.4px] font-semibold leading-[25px] tracking-[0.87px] text-white shadow-sm
+                                              transition-transform duration-300 ease-smooth hover:-translate-y-0.5">
                                         Select Room
                                     </a>
                                 </div>
