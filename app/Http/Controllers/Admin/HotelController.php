@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreHotelRequest;
 use App\Models\Booking;
 use App\Models\Hotel;
 use App\Models\HotelRoom;
+use App\Support\RichText;
 use App\Support\Uploads;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -134,6 +135,8 @@ class HotelController extends Controller
         $data = $request->safe()->except(['cover', 'gallery', 'rooms', 'amenities', 'submit_as', 'publish']);
         $picked = $request->input('amenities', []);
         $data['amenities'] = array_values(array_filter(self::AMENITIES, fn ($a) => in_array($a['label'], $picked, true)));
+        // Only the editor's own tags survive, so the description is safe to print unescaped.
+        $data['description'] = RichText::clean($data['description']);
 
         if ($cover = Uploads::store($request->file('cover'), 'hotels')) {
             $data['image'] = $cover;

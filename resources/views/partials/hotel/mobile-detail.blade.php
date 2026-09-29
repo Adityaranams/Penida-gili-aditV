@@ -35,7 +35,7 @@
 
     <div class="flex flex-col gap-[32px] px-[20px] pb-[32px] pt-[16px]">
         {{-- Description (1:3460) --}}
-        <p data-reveal class="text-[16px] leading-[24px] text-[#414751]">{{ $hotel['description'] }}</p>
+        <div data-reveal class="rich-text text-[16px] leading-[24px] text-[#414751]">{!! $hotel['description'] !!}</div>
 
         {{-- Amenities (1:3462) --}}
         <section class="flex flex-col gap-[16px]">

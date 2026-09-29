@@ -98,20 +98,29 @@
                             </fieldset>
                         </div>
 
-                        {{-- Rich Text Property Description (1:7572): toolbar strip mirrors the design; plain text is stored --}}
-                        <div class="flex flex-col gap-[8px]">
+                        {{-- Rich Text Property Description (1:7572). The contenteditable is what the
+                             admin types in; it mirrors into the textarea that posts, so the field still
+                             works (as plain text) when JavaScript is off. --}}
+                        @php $rte = 'flex items-center justify-center rounded-[4px] p-[6px] transition-colors hover:bg-[#e5e9eb] aria-pressed:bg-editorial/10 aria-pressed:text-editorial'; @endphp
+                        <div class="flex flex-col gap-[8px]" data-editor>
                             <label for="hotel-description" class="{{ $label }}">Property Description</label>
-                            <div class="flex items-center gap-[4px] rounded-t-[8px] border border-[#c0c7d3] bg-[#f1f4f6] px-[13px] py-[9px] font-jakarta text-[12px] text-editorial-body" aria-hidden="true">
-                                <span class="rounded-[4px] p-[6px] font-bold">B</span>
-                                <span class="rounded-[4px] p-[6px]">I</span>
-                                <span class="rounded-[4px] p-[6px] underline">U</span>
+                            <div class="flex items-center gap-[4px] rounded-t-[8px] border border-[#c0c7d3] bg-[#f1f4f6] px-[13px] py-[9px] font-jakarta text-[12px] text-editorial-body">
+                                <button type="button" data-editor-command="bold" title="Bold" aria-label="Bold" class="{{ $rte }} font-bold">B</button>
+                                <button type="button" data-editor-command="italic" title="Italic" aria-label="Italic" class="{{ $rte }} italic">I</button>
+                                <button type="button" data-editor-command="underline" title="Underline" aria-label="Underline" class="{{ $rte }} underline">U</button>
                                 <span class="mx-[4px] h-[16px] w-px bg-[#c0c7d3]"></span>
-                                <img src="{{ $icon('rte-list.svg') }}" alt="" class="mx-[4px] h-[9.3px] w-[10.5px]">
-                                <img src="{{ $icon('rte-ol.svg') }}" alt="" class="mx-[4px] h-[11.6px] w-[10.5px]">
-                                <img src="{{ $icon('rte-align.svg') }}" alt="" class="mx-[4px] h-[5.8px] w-[11.6px]">
-                                <img src="{{ $icon('rte-link.svg') }}" alt="" class="mx-[4px] h-[7px] w-[9.9px]">
+                                <button type="button" data-editor-command="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list" class="{{ $rte }}">
+                                    <img src="{{ $icon('rte-list.svg') }}" alt="" class="h-[9.3px] w-[10.5px]">
+                                </button>
+                                <button type="button" data-editor-command="insertOrderedList" title="Numbered list" aria-label="Numbered list" class="{{ $rte }}">
+                                    <img src="{{ $icon('rte-ol.svg') }}" alt="" class="h-[11.6px] w-[10.5px]">
+                                </button>
                             </div>
-                            <textarea id="hotel-description" name="description" rows="6" required
+
+                            <div data-editor-surface contenteditable="true" role="textbox" aria-multiline="true" aria-label="Property description" hidden
+                                 class="rich-text -mt-[8px] min-h-[150px] w-full rounded-b-[8px] border border-t-0 border-[#c0c7d3] bg-surface px-[17px] py-[16px] font-jakarta text-[14px] leading-[22px] text-editorial-ink focus:outline-none">{!! \App\Support\RichText::clean(old('description', $hotel->description)) !!}</div>
+
+                            <textarea id="hotel-description" name="description" rows="6" required data-editor-input
                                       placeholder="Perched along the dramatic cliff edges of Nusa Penida…"
                                       class="-mt-[8px] w-full resize-y rounded-b-[8px] border border-t-0 border-[#c0c7d3] bg-surface px-[17px] py-[16px] font-jakarta text-[14px] leading-[20px] text-editorial-ink placeholder:text-editorial-meta focus:outline-2 focus:outline-editorial">{{ old('description', $hotel->description) }}</textarea>
                             @error('description') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror

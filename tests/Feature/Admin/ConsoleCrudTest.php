@@ -3,6 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\ListingStatus;
+use App\Http\Requests\Admin\StoreActivityRequest;
+use App\Http\Requests\Admin\StoreArticleRequest;
+use App\Http\Requests\Admin\StoreHotelRequest;
+use App\Http\Requests\Admin\StoreScheduleRequest;
+use App\Http\Requests\Admin\StoreVesselRequest;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\Author;
@@ -222,5 +227,50 @@ class ConsoleCrudTest extends TestCase
         $this->actingAs($this->admin)->delete(route('admin.articles.destroy', $article->fresh()))->assertRedirect(route('admin.articles'));
         $this->assertModelMissing($article);
         $this->get(route('articles.index'))->assertOk()->assertDontSee('Crossing the Badung Strait Calmly');
+    }
+
+    /**
+     * Guard against dead UI: every control on a console create screen must be wired to
+     * something — a form field the request validates, or a button the editor JS listens for.
+     */
+    public function test_console_create_screens_have_no_dead_controls(): void
+    {
+        BoatOperator::factory()->create();
+        Port::factory()->count(2)->create();
+        Vessel::factory()->create();
+
+        $screens = [
+            'admin.boats.create' => StoreVesselRequest::class,
+            'admin.schedules.create' => StoreScheduleRequest::class,
+            'admin.activities.create' => StoreActivityRequest::class,
+            'admin.hotels.create' => StoreHotelRequest::class,
+            'admin.articles.create' => StoreArticleRequest::class,
+        ];
+
+        foreach ($screens as $route => $requestClass) {
+            $html = $this->actingAs($this->admin)->get(route($route))->assertOk()->getContent();
+
+            // Every posted field is covered by the form request. The rule keys are read from the
+            // source: resolving a FormRequest out of the container would validate this GET request.
+            preg_match_all('/<(?:input|select|textarea)[^>]*\bname="([a-z_]+)(\[\])?"/', $html, $matches);
+            preg_match_all("/'([a-z_]+)(?:\.\*)?' =>/", (string) file_get_contents((new \ReflectionClass($requestClass))->getFileName()), $ruleMatches);
+            $rules = array_unique($ruleMatches[1]);
+
+            $posted = array_diff(array_unique($matches[1]), ['_token', '_method', 'q', 'ids']);
+
+            foreach ($posted as $field) {
+                $this->assertContains($field, $rules, "{$route}: the {$field} field has no validation rule.");
+            }
+
+            // No toolbar is left as a decorative, unclickable strip.
+            $this->assertStringNotContainsString('aria-hidden="true">
+                                <span class="rounded', $html, "{$route}: a toolbar is still decorative.");
+
+            foreach (['data-editor-command', 'data-stepper', 'data-room-add', 'data-select-all-days'] as $hook) {
+                if (str_contains($html, $hook)) {
+                    $this->assertStringContainsString('type="button"', $html, "{$route}: {$hook} is not on a real button.");
+                }
+            }
+        }
     }
 }

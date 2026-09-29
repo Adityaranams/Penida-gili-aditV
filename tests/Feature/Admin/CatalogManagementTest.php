@@ -677,6 +677,31 @@ class CatalogManagementTest extends TestCase
         $this->assertSame(ListingStatus::Active, $hotel->fresh()->status);
     }
 
+    public function test_hotel_description_keeps_basic_formatting_and_shows_it_on_the_detail_page(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.hotels.store'), [
+            'name' => 'Cliff Edge Resort',
+            'category' => 'Resort',
+            'stars' => 5,
+            'description' => '<p>Perched on the <strong>cliff edge</strong>.</p><ul><li>Infinity pool</li></ul><script>alert(1)</script>',
+            'address' => 'Nusa Penida, Bali',
+            'publish' => 'publish',
+            'rooms' => [['name' => 'Deluxe', 'guests' => 2, 'price_per_night' => '2.500.000', 'stock' => 2]],
+        ])->assertRedirect(route('admin.hotels'));
+
+        $hotel = Hotel::query()->sole();
+
+        // The toolbar's own tags survive; anything else is stripped before it is stored.
+        $this->assertStringContainsString('<strong>cliff edge</strong>', $hotel->description);
+        $this->assertStringContainsString('<li>Infinity pool</li>', $hotel->description);
+        $this->assertStringNotContainsString('<script>', $hotel->description);
+
+        $this->get(route('hotels.show', $hotel))
+            ->assertOk()
+            ->assertSee('<strong>cliff edge</strong>', false)
+            ->assertDontSee('<script>alert(1)</script>', false);
+    }
+
     public function test_hotel_requires_at_least_one_room(): void
     {
         $this->actingAs($this->admin)->post(route('admin.hotels.store'), [

@@ -74,7 +74,8 @@
                     <a href="#location" class="pl-[20px] text-brand transition-colors hover:underline">View on map</a>
                 </p>
 
-                <p class="mt-[20px] text-[22.4px] leading-[36.4px] text-editorial-body">{{ $hotel['description'] }}</p>
+                {{-- Console-written copy; RichText::clean() has already stripped anything but its own tags. --}}
+                <div class="rich-text mt-[20px] text-[22.4px] leading-[36.4px] text-editorial-body">{!! $hotel['description'] !!}</div>
             </div>
 
             {{-- Figma node 1:1736 — premium amenities --}}
