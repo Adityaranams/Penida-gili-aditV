@@ -17,7 +17,6 @@ use App\Models\Schedule;
 use App\Models\User;
 use App\Models\Vessel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -79,7 +78,7 @@ class CatalogManagementTest extends TestCase
             'capacity' => 150,
             'status' => ListingStatus::Active->value,
             'facilities' => ['Toilet', 'Life Jackets'],
-            'cover' => UploadedFile::fake()->image('queen.jpg'),
+            'cover' => $this->fakeImage('queen.jpg'),
         ])->assertRedirect(route('admin.boats'));
 
         $vessel = Vessel::query()->sole();
@@ -116,14 +115,14 @@ class CatalogManagementTest extends TestCase
         ];
 
         $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
-            'photos' => [UploadedFile::fake()->image('deck.jpg')],
+            'photos' => [$this->fakeImage('deck.jpg')],
         ])->assertRedirect(route('admin.boats'));
 
         $this->assertCount(1, $vessel->fresh()->gallery);
 
         // A second upload is added to the first, not swapped in for it.
         $this->actingAs($this->admin)->put(route('admin.boats.update', $vessel), $base + [
-            'photos' => [UploadedFile::fake()->image('cabin.jpg')],
+            'photos' => [$this->fakeImage('cabin.jpg')],
         ])->assertRedirect(route('admin.boats'));
 
         $gallery = $vessel->fresh()->gallery;
@@ -402,7 +401,7 @@ class CatalogManagementTest extends TestCase
             'cancellation_policy' => 'free_24h',
             'instant_confirmation' => 'on',
             'status' => ListingStatus::Active->value,
-            'cover' => UploadedFile::fake()->image('paddle.jpg'),
+            'cover' => $this->fakeImage('paddle.jpg'),
         ])->assertRedirect(route('admin.activities'));
 
         $activity = Activity::query()->where('name', 'Sunrise Paddle')->sole();
@@ -423,8 +422,8 @@ class CatalogManagementTest extends TestCase
         $base = ['name' => $activity->name, 'category' => $activity->category, 'description' => $activity->description,
             'price_adult' => '120.000', 'max_daily_capacity' => '20', 'status' => ListingStatus::Active->value];
 
-        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [UploadedFile::fake()->image('a.jpg')]]);
-        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [UploadedFile::fake()->image('b.jpg')]]);
+        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [$this->fakeImage('a.jpg')]]);
+        $this->actingAs($this->admin)->put(route('admin.activities.update', $activity), $base + ['gallery' => [$this->fakeImage('b.jpg')]]);
 
         $this->assertCount(2, $activity->fresh()->gallery);
     }
@@ -839,7 +838,7 @@ class CatalogManagementTest extends TestCase
         Storage::fake('public');
 
         $response = $this->actingAs($this->admin)->post(route('admin.articles.image'), [
-            'image' => UploadedFile::fake()->image('deck.jpg'),
+            'image' => $this->fakeImage('deck.jpg'),
         ])->assertOk();
 
         $url = $response->json('url');
@@ -905,7 +904,7 @@ class CatalogManagementTest extends TestCase
             'author_role' => 'Master Mariner',
             'author_credential' => 'ANT-IV Certified',
             'author_bio' => 'Twelve years on the Badung Strait.',
-            'author_photo' => UploadedFile::fake()->image('wayan.jpg'),
+            'author_photo' => $this->fakeImage('wayan.jpg'),
         ])->assertRedirect(route('admin.articles'));
 
         $author = Author::query()->sole();
