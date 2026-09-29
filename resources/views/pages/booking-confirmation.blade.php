@@ -36,7 +36,11 @@
                         Thanks, {{ \Illuminate\Support\Str::before($booking->customer_name, ' ') }} — your booking is in.
                     </h2>
                     <p class="mt-[8px] text-[16px] leading-[26px] text-editorial-body">
-                        We have emailed the details to <strong class="text-editorial-ink">{{ $booking->customer_email }}</strong>.
+                        @if ($booking->customer_email)
+                            We have emailed the details to <strong class="text-editorial-ink">{{ $booking->customer_email }}</strong>.
+                        @else
+                            Keep this reference handy — we will reach you on <strong class="text-editorial-ink">{{ $booking->dial_code }} {{ $booking->phone }}</strong>.
+                        @endif
                         Our team will confirm availability and send payment instructions shortly.
                     </p>
                 </div>

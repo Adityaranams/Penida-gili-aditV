@@ -19,7 +19,8 @@ class StoreBookingRequest extends FormRequest
         return [
             // Letters (any alphabet), spaces, apostrophes and hyphens; at least three letters.
             'full_name' => ['required', 'string', 'max:120', 'regex:/^[\p{L}\s\'\-.]+$/u', 'regex:/(?:\p{L}.*){3}/u'],
-            'email' => ['required', 'email:rfc', 'max:190'],
+            // The order form no longer collects an email; kept optional for the admin console and API callers.
+            'email' => ['nullable', 'email:rfc', 'max:190'],
             'nationality' => ['required', Rule::in(BookingOptions::nationalities())],
             'dial_code' => ['nullable', Rule::in(BookingOptions::dialCodes())],
             // Local number without the dialling code: 6–15 digits, spaces/dashes allowed.
@@ -43,10 +44,11 @@ class StoreBookingRequest extends FormRequest
         ];
     }
 
-    /** @return array{full_name: string, email: string, dial_code: string, phone: string, nationality: string, notes: string|null} */
+    /** @return array{full_name: string, email: string|null, dial_code: string, phone: string, nationality: string, notes: string|null} */
     public function traveller(): array
     {
-        $traveller = $this->safe()->only(['full_name', 'email', 'dial_code', 'phone', 'nationality', 'notes']) + ['dial_code' => '+62', 'notes' => null];
+        $traveller = $this->safe()->only(['full_name', 'email', 'dial_code', 'phone', 'nationality', 'notes'])
+            + ['dial_code' => '+62', 'notes' => null, 'email' => null];
         $traveller['full_name'] = trim(preg_replace('/\s+/u', ' ', $traveller['full_name']));
         $traveller['phone'] = preg_replace('/\D+/', '', $traveller['phone']);
 

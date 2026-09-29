@@ -42,8 +42,11 @@ class CreateBooking
             'notes' => $traveller['notes'] ?? null,
         ]));
 
-        Notification::route('mail', [$booking->customer_email => $booking->customer_name])
-            ->notify(new BookingReceived($booking));
+        // The order form no longer asks for an email, so only notify when one is on file.
+        if (filled($booking->customer_email)) {
+            Notification::route('mail', [$booking->customer_email => $booking->customer_name])
+                ->notify(new BookingReceived($booking));
+        }
 
         return $booking;
     }

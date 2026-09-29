@@ -12,6 +12,15 @@ class StoreHotelBookingRequest extends StoreBookingRequest
     /** Longest stay a guest may book online; longer stays go through the operator. */
     public const MAX_NIGHTS = 30;
 
+    /** Rooms are no longer picked by hand: the party size decides how many units are needed. */
+    protected function prepareForValidation(): void
+    {
+        $people = $this->integer('adults') + $this->integer('children');
+        $needed = max(1, (int) ceil($people / BookingOptions::GUESTS_PER_ROOM));
+
+        $this->merge(['rooms' => max($needed, $this->integer('rooms'))]);
+    }
+
     public function rules(): array
     {
         return parent::rules() + [
@@ -31,13 +40,6 @@ class StoreHotelBookingRequest extends StoreBookingRequest
             function (Validator $validator): void {
                 if ($validator->errors()->isNotEmpty()) {
                     return;
-                }
-
-                $people = $this->integer('adults') + $this->integer('children');
-                $needed = (int) ceil($people / BookingOptions::GUESTS_PER_ROOM);
-
-                if ($this->integer('rooms') < $needed) {
-                    $validator->errors()->add('rooms', "{$people} guests need at least {$needed} rooms (max ".BookingOptions::GUESTS_PER_ROOM.' per room).');
                 }
 
                 $checkIn = $this->date('travel_date');

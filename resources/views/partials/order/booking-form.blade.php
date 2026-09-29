@@ -26,12 +26,6 @@
                        class="rounded-[11px] border border-[#c0c7d3] bg-[#f7fafc] px-[17.6px] pb-[15px] pt-[13.5px] text-[21.6px] text-editorial-ink placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
             </div>
             <div class="flex flex-col gap-[5.4px]">
-                <label for="email" class="text-[18.9px] font-semibold uppercase leading-[27px] tracking-[0.95px] text-editorial-body">Email Address</label>
-                <input id="email" name="email" type="email" placeholder="you@example.com" value="{{ old('email') }}" required
-                       class="rounded-[11px] border border-[#c0c7d3] bg-[#f7fafc] px-[17.6px] pb-[15px] pt-[13.5px] text-[21.6px] text-editorial-ink placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
-            </div>
-
-            <div class="flex flex-col gap-[5.4px]">
                 <label for="nationality" class="text-[18.9px] font-semibold uppercase leading-[27px] tracking-[0.95px] text-editorial-body">Nationality</label>
                 <div class="relative">
                     <select id="nationality" name="nationality" required

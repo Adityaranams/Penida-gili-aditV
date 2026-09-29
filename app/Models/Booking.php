@@ -109,7 +109,8 @@ class Booking extends Model
             'reference' => $this->reference,
             'initials' => $this->customer_initials,
             'name' => $this->customer_name,
-            'email' => $this->customer_email,
+            // The order form collects a phone number, not an email; show whichever is on file.
+            'email' => $this->customer_email ?: trim($this->dial_code.' '.$this->phone),
             'from' => $from,
             'to' => $to,
             'vessel' => $vessel,
@@ -132,7 +133,6 @@ class Booking extends Model
             '',
             'Booking Reference: '.$this->reference,
             'Full Name: '.$this->customer_name,
-            'Email Address: '.$this->customer_email,
             'Nationality: '.$this->nationality,
             'Phone Number: '.$this->dial_code.' '.$this->phone,
             'Order Notes: '.($this->notes ?: '-'),

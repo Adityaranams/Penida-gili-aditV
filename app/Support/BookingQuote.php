@@ -124,14 +124,8 @@ final class BookingQuote
             ],
         ];
 
-        if ($perNight) {
-            $groups[] = [
-                'name' => 'rooms', 'label' => 'Rooms', 'hint' => 'Max '.BookingOptions::GUESTS_PER_ROOM.' guests per room',
-                'value' => $this->rooms, 'min' => 1,
-                'price' => Money::idr($this->unitAdult * $this->nights).' / room ('.$this->nights.' night'.($this->nights > 1 ? 's' : '').')',
-            ];
-        }
-
+        // Rooms are no longer picked by hand; they follow the party size (max
+        // BookingOptions::GUESTS_PER_ROOM guests per room) through the hidden field.
         return $groups;
     }
 

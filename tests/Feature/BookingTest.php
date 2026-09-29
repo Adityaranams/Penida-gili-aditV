@@ -57,6 +57,26 @@ class BookingTest extends TestCase
         $this->get(route('bookings.show', $booking))->assertOk()->assertSee($booking->reference)->assertSee('IDR 495.000');
     }
 
+    public function test_booking_without_an_email_is_accepted_and_sends_no_mail(): void
+    {
+        Notification::fake();
+
+        $operator = BoatOperator::factory()->create();
+        $schedule = Schedule::factory()->for($operator, 'operator')->create();
+
+        // The order form no longer asks for an email address.
+        $payload = $this->traveller(['schedule_id' => $schedule->id]);
+        unset($payload['email']);
+
+        $this->post(route('boats.book', $operator), $payload)->assertSessionHasNoErrors();
+
+        $booking = Booking::query()->sole();
+        $this->assertNull($booking->customer_email);
+        Notification::assertNothingSent();
+
+        $this->get(route('bookings.show', $booking))->assertOk()->assertSee('+62 81234567890');
+    }
+
     public function test_boat_booking_rejects_a_schedule_from_another_operator(): void
     {
         $operator = BoatOperator::factory()->create();
@@ -130,11 +150,14 @@ class BookingTest extends TestCase
         $this->assertSame('2030-05-12', $booking->check_out->toDateString());
     }
 
-    public function test_hotel_booking_rejects_more_guests_than_the_rooms_can_hold(): void
+    public function test_hotel_booking_adds_the_rooms_a_large_party_needs(): void
     {
-        $hotel = Hotel::factory()->create();
-        $room = HotelRoom::factory()->for($hotel)->create();
+        Notification::fake();
 
+        $hotel = Hotel::factory()->create();
+        $room = HotelRoom::factory()->for($hotel)->create(['stock' => 5]);
+
+        // The order form no longer shows a rooms stepper: five guests book two rooms on their own.
         $this->post(route('hotels.book', $hotel), $this->traveller([
             'room_id' => $room->id,
             'travel_date' => '2030-05-10',
@@ -142,7 +165,9 @@ class BookingTest extends TestCase
             'adults' => 5,
             'children' => 0,
             'rooms' => 1,
-        ]))->assertSessionHasErrors('rooms');
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame(2, Booking::query()->sole()->rooms);
     }
 
     public function test_hotel_booking_cannot_exceed_the_units_still_free_for_the_dates(): void

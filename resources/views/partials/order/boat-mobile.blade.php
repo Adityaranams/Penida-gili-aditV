@@ -91,12 +91,6 @@
                            class="rounded-[8px] border border-[#c0c7d3] bg-white px-[17px] pb-[15px] pt-[14px] text-[16px] text-[#181c1e] placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
                 </div>
                 <div class="flex flex-col gap-[4px]">
-                    <label for="m-email" class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#414751]">Email Address</label>
-                    <input id="m-email" name="email" type="email" placeholder="you@example.com" value="{{ old('email') }}" required
-                           class="rounded-[8px] border border-[#c0c7d3] bg-white px-[17px] pb-[15px] pt-[14px] text-[16px] text-[#181c1e] placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
-                </div>
-
-                <div class="flex flex-col gap-[4px]">
                     <label for="m-nationality" class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#414751]">Nationality</label>
                     <div class="relative">
                         <select id="m-nationality" name="nationality" required

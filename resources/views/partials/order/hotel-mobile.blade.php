@@ -1,7 +1,7 @@
 {{-- Figma node 1:3606 — "hotel order full" (mobile, 390px). Rendered below lg only; the desktop layout is hidden there. --}}
 @props(['order'])
 
-@php [$adults, , $roomsGroup] = $order['party']; @endphp
+@php [$adults] = $order['party']; @endphp
 
 <form action="{{ $order['action'] }}" method="post" data-quote="{{ json_encode($order['quote']) }}" data-confirm="booking" data-email="{{ config('penida.booking.email') }}" data-confirm-product="{{ $order['property'] }}" class="bg-[#f7fafc] lg:hidden">
     @csrf
@@ -46,12 +46,6 @@
                     <input id="m-full-name" name="full_name" type="text" minlength="3" title="Letters only, at least 3 letters" placeholder="John Doe" value="{{ old('full_name') }}" required
                            class="rounded-[8px] border border-[#c0c7d3] bg-[#f7fafc] px-[17px] pb-[15px] pt-[14px] text-[16px] text-[#181c1e] placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
                 </div>
-                <div class="flex flex-col gap-[4px]">
-                    <label for="m-email" class="text-[12px] leading-[18px] text-[#414751]">Email Address</label>
-                    <input id="m-email" name="email" type="email" placeholder="you@example.com" value="{{ old('email') }}" required
-                           class="rounded-[8px] border border-[#c0c7d3] bg-[#f7fafc] px-[17px] pb-[15px] pt-[14px] text-[16px] text-[#181c1e] placeholder:text-[#6b7280] focus:border-brand focus:outline-none">
-                </div>
-
                 <div class="flex flex-col gap-[4px]">
                     <label for="m-nationality" class="text-[12px] leading-[18px] text-[#414751]">Nationality</label>
                     <div class="relative">
@@ -116,30 +110,6 @@
                 </div>
             </div>
 
-            {{-- Number of Rooms --}}
-            <div data-reveal style="--reveal-delay: 150ms" class="flex items-center justify-between gap-[12px] rounded-[12px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_4px_10px_rgba(0,0,0,0.05)]">
-                <label for="m-{{ $roomsGroup['name'] }}">
-                    <span class="block text-[16px] leading-[24px] text-brand">Number of Rooms</span>
-                    <span class="block text-[12px] leading-[18px] text-[#414751]">Same room type</span>
-                </label>
-
-                <div class="flex items-center gap-[16px] rounded-full bg-[#ebeef0] px-[8px] py-[4px]" data-stepper>
-                    <button type="button" data-step="-1" aria-label="Decrease rooms"
-                            class="flex size-[32px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                        <img src="{{ asset('images/icons/mobile/order/minus.svg') }}" alt="" class="h-[2px] w-[11.7px]">
-                    </button>
-
-                    <input id="m-{{ $roomsGroup['name'] }}" name="{{ $roomsGroup['name'] }}" type="number" inputmode="numeric"
-                           value="{{ $roomsGroup['value'] }}" min="{{ $roomsGroup['min'] }}"
-                           class="w-[24px] bg-transparent text-center text-[16px] leading-[24px] text-[#181c1e] focus:outline-none
-                                  [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
-
-                    <button type="button" data-step="1" aria-label="Increase rooms"
-                            class="flex size-[32px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                        <img src="{{ asset('images/icons/mobile/order/plus.svg') }}" alt="" class="size-[11.7px]">
-                    </button>
-                </div>
-            </div>
         </section>
     </div>
 
