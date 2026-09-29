@@ -73,7 +73,12 @@ final class BookingQuote
         return $this->extraAdults() * $this->extraAdultPrice;
     }
 
-    /** @return list<array{label: string, amount: string}> */
+    /**
+     * Price breakdown rows. `kind` lets the summary card hook each row up to the party
+     * steppers, and a per-guest row stays in the markup (hidden) while its count is zero.
+     *
+     * @return list<array{label: string, amount: string, kind: string, hidden?: bool}>
+     */
     public function lines(): array
     {
         if ($this->bookable instanceof HotelRoom) {
@@ -82,22 +87,32 @@ final class BookingQuote
                 $label .= ' x '.$this->rooms.' rooms';
             }
 
-            $lines = [['label' => $label, 'amount' => Money::idr($this->unitAdult * $this->nights * $this->rooms)]];
+            $lines = [['label' => $label, 'amount' => Money::idr($this->unitAdult * $this->nights * $this->rooms), 'kind' => 'rooms']];
 
-            if ($extra = $this->extraAdults()) {
-                $lines[] = ['label' => $extra.' Extra Adult'.($extra > 1 ? 's' : '').' x '.Money::idr($this->extraAdultPrice), 'amount' => Money::idr($this->extraAdultSurcharge())];
-            }
+            $extra = $this->extraAdults();
+            $lines[] = [
+                'label' => $extra.' Extra Adult'.($extra > 1 ? 's' : '').' x '.Money::idr($this->extraAdultPrice),
+                'amount' => Money::idr($this->extraAdultSurcharge()),
+                'kind' => 'extra',
+                'hidden' => $extra === 0,
+            ];
 
             return $lines;
         }
 
-        $lines = [['label' => $this->adults.' Adult'.($this->adults > 1 ? 's' : ''), 'amount' => Money::idr($this->adults * $this->unitAdult)]];
-
-        if ($this->children > 0) {
-            $lines[] = ['label' => $this->children.' Child'.($this->children > 1 ? 'ren' : ''), 'amount' => Money::idr($this->children * $this->unitChild)];
-        }
-
-        return $lines;
+        return [
+            [
+                'label' => $this->adults.' Adult'.($this->adults > 1 ? 's' : ''),
+                'amount' => Money::idr($this->adults * $this->unitAdult),
+                'kind' => 'adult',
+            ],
+            [
+                'label' => $this->children.' Child'.($this->children > 1 ? 'ren' : ''),
+                'amount' => Money::idr($this->children * $this->unitChild),
+                'kind' => 'child',
+                'hidden' => $this->children === 0,
+            ],
+        ];
     }
 
     /**

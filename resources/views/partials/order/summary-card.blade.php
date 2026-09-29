@@ -42,9 +42,12 @@
             <div class="mt-[11px] rounded-[11px] bg-[#f1f4f6] p-[21.6px]">
                 {{-- Two-column grid: labels may wrap, amounts sit in one left-aligned column sized to the widest figure. --}}
                 <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-[24px] gap-y-[4px]">
+                    {{-- Rewritten by resources/js/order-quote.js as the party steppers change. --}}
                     @foreach ($order['lines'] as $line)
-                        <span class="text-[18.9px] leading-[27px] text-editorial-body">{{ $line['label'] }}</span>
-                        <span class="whitespace-nowrap text-[18.9px] leading-[27px] text-editorial-ink">{{ $line['amount'] }}</span>
+                        <span data-quote-row="{{ $line['kind'] }}-label" class="text-[18.9px] leading-[27px] text-editorial-body"
+                              @if ($line['hidden'] ?? false) hidden @endif>{{ $line['label'] }}</span>
+                        <span data-quote-row="{{ $line['kind'] }}-amount" class="whitespace-nowrap text-[18.9px] leading-[27px] text-editorial-ink"
+                              @if ($line['hidden'] ?? false) hidden @endif>{{ $line['amount'] }}</span>
                     @endforeach
 
                     <span class="col-span-2 mt-[7px] border-t border-editorial-line" aria-hidden="true"></span>

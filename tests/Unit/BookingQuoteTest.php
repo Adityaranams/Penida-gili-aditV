@@ -19,7 +19,15 @@ class BookingQuoteTest extends TestCase
         $quote = BookingQuote::forSchedule($schedule, Carbon::parse('2030-01-01'), 2, 1);
 
         $this->assertSame(495_000, $quote->total());
-        $this->assertSame([['label' => '2 Adults', 'amount' => 'IDR 360.000'], ['label' => '1 Child', 'amount' => 'IDR 135.000']], $quote->lines());
+        $this->assertSame([
+            ['label' => '2 Adults', 'amount' => 'IDR 360.000', 'kind' => 'adult'],
+            ['label' => '1 Child', 'amount' => 'IDR 135.000', 'kind' => 'child', 'hidden' => false],
+        ], $quote->lines());
+
+        // The child row stays in the breakdown, hidden, so the summary card can reveal it live.
+        $adultsOnly = BookingQuote::forSchedule($schedule, Carbon::parse('2030-01-01'), 2, 0);
+
+        $this->assertSame(['label' => '0 Child', 'amount' => 'IDR 0', 'kind' => 'child', 'hidden' => true], $adultsOnly->lines()[1]);
     }
 
     public function test_room_quote_charges_per_night_and_never_below_one_night(): void

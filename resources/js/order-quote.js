@@ -28,6 +28,19 @@ document.querySelectorAll('form[data-quote]').forEach((form) => {
 
     const num = (input, fallback = 0) => (input ? Math.max(Number(input.min || 0), Number(input.value) || fallback) : fallback);
 
+    /**
+     * Write the breakdown rows: `texts` maps a `data-quote-row` name to its copy, and
+     * `hide` maps a row kind to whether both of its cells should disappear.
+     */
+    const rows = (texts, hide = {}) => {
+        Object.entries(texts).forEach(([name, text]) => {
+            document.querySelectorAll(`[data-quote-row="${name}"]`).forEach((el) => {
+                el.textContent = text;
+                el.hidden = hide[name.split('-')[0]] === true;
+            });
+        });
+    };
+
     const render = () => {
         const a = num(adults, 1);
         const c = num(children);
@@ -69,6 +82,14 @@ document.querySelectorAll('form[data-quote]').forEach((form) => {
             });
         } else {
             total = a * quote.unitAdult + c * quote.unitChild;
+
+            // Per-guest breakdown rows follow the steppers; the child row hides at zero.
+            rows({
+                'adult-label': `${a} Adult${a > 1 ? 's' : ''}`,
+                'adult-amount': idr(a * quote.unitAdult),
+                'child-label': `${c} Child${c > 1 ? 'ren' : ''}`,
+                'child-amount': idr(c * quote.unitChild),
+            }, { child: c === 0 });
         }
 
         document.querySelectorAll('[data-quote-total]').forEach((el) => {
