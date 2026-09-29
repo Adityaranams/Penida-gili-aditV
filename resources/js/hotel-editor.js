@@ -57,6 +57,17 @@ if (form) {
             renumber();
         });
 
+        // Room photo: preview the picked file straight away.
+        const photo = card.querySelector('[data-room-photo-input]');
+        photo?.addEventListener('change', () => {
+            const file = photo.files?.[0];
+            if (!file) return;
+            const preview = card.querySelector('[data-room-photo-preview]');
+            preview.src = URL.createObjectURL(file);
+            preview.hidden = false;
+            card.querySelector('[data-room-photo-name]').textContent = file.name;
+        });
+
         card.querySelectorAll('input').forEach((input) => input.addEventListener('input', () => { syncCard(card); renumber(); }));
         syncCard(card);
     };

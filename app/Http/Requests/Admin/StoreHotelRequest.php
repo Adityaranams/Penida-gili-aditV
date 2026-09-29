@@ -15,7 +15,12 @@ class StoreHotelRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Rooms with an empty name are unfilled editor slots or removed cards.
+        // Each room's photo arrives in the file bag; carry it alongside the typed values so it
+        // survives the filtering below and is validated with the rest of the row.
+        $files = $this->file('rooms', []);
+
         $rooms = collect($this->input('rooms', []))
+            ->map(fn ($room, $i) => $room + ['photo' => $files[$i]['photo'] ?? null])
             ->filter(fn ($room) => filled($room['name'] ?? null))
             ->map(fn ($room) => array_merge($room, ['price_per_night' => (int) preg_replace('/\D+/', '', (string) ($room['price_per_night'] ?? 0))]))
             ->values()
@@ -62,6 +67,9 @@ class StoreHotelRequest extends FormRequest
             'rooms.*.size_label' => ['nullable', 'string', 'max:60'],
             'rooms.*.price_per_night' => ['required', 'integer', 'min:0'],
             'rooms.*.stock' => ['required', 'integer', 'min:0', 'max:500'],
+            // Room photo: a new upload, or the path already on file when nothing is chosen.
+            'rooms.*.photo' => ['nullable', 'image', 'max:12288'],
+            'rooms.*.image' => ['nullable', 'string', 'max:255'],
         ];
     }
 

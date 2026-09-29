@@ -355,6 +355,26 @@ class ConsoleCrudTest extends TestCase
         // The cover is kept when no new one is uploaded.
         $this->assertSame($hotel->image, $hotel->fresh()->image);
 
+        // Each room carries its own photo onto "Select Your Room", and keeps it when the
+        // hotel is saved again without picking a new one.
+        $room = $hotel->rooms()->sole();
+
+        $this->actingAs($this->admin)->put(route('admin.hotels.update', $hotel), ['rooms' => [[
+            'id' => $room->id, 'name' => 'Deluxe', 'guests' => 2, 'price_per_night' => '2.500.000', 'stock' => 2,
+            'photo' => $this->fakeImage('deluxe.jpg'),
+        ]]] + $hotelPayload)->assertRedirect(route('admin.hotels'));
+
+        $roomImage = $room->fresh()->image;
+        $this->assertStringStartsWith('uploads/hotels/', $roomImage);
+        Storage::disk('public')->assertExists($roomImage);
+        $this->get(route('hotels.show', $hotel))->assertOk()->assertSee('/storage/'.$roomImage, false);
+
+        $this->actingAs($this->admin)->put(route('admin.hotels.update', $hotel), ['rooms' => [
+            ['id' => $room->id, 'name' => 'Deluxe', 'guests' => 2, 'price_per_night' => '2.500.000', 'stock' => 2, 'image' => $roomImage],
+        ]] + $hotelPayload)->assertRedirect(route('admin.hotels'));
+
+        $this->assertSame($roomImage, $room->fresh()->image);
+
         // Boat: cover photo reaches the public vessel page.
         $this->actingAs($this->admin)->post(route('admin.boats.store'), [
             'name' => 'Sanjaya Ocean Queen',

@@ -65,5 +65,24 @@
         <div class="sm:col-span-2"><x-admin.field label="Size Label" name="rooms[{{ $i }}][size_label]" :value="$room['size_label'] ?? ''" placeholder="45 m² Ocean Terrace" /></div>
         <div class="sm:col-span-3"><x-admin.field label="Base Price / Night (IDR)" name="rooms[{{ $i }}][price_per_night]" :value="$money($room['price_per_night'] ?? '')" prefix="Rp" placeholder="2.500.000" /></div>
         <x-admin.field label="Units" name="rooms[{{ $i }}][stock]" type="number" :value="$room['stock'] ?? 1" />
+
+        {{-- Room photo: shown on "Select Your Room". Left empty, the design's default picture is used. --}}
+        <div class="sm:col-span-6" data-room-photo>
+            <span class="block font-jakarta text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-editorial-ink">Room Photo</span>
+            <input type="hidden" name="rooms[{{ $i }}][image]" value="{{ $room['image'] ?? '' }}">
+
+            <label class="mt-[8px] flex cursor-pointer items-center gap-[14px] rounded-[10px] border border-dashed border-[rgba(192,199,211,0.6)] bg-surface p-[12px] transition-colors duration-300 hover:border-editorial">
+                <input type="file" name="rooms[{{ $i }}][photo]" accept="image/png,image/jpeg,image/webp" class="sr-only" data-room-photo-input>
+
+                <img data-room-photo-preview src="{{ ($room['image'] ?? null) ? \App\Support\ImagePath::url($room['image'], 'hotels/detail') : '' }}"
+                     alt="" @unless ($room['image'] ?? null) hidden @endunless class="h-[64px] w-[86px] shrink-0 rounded-[8px] object-cover">
+
+                <span class="min-w-0">
+                    <span class="block font-jakarta text-[13px] font-semibold text-editorial-ink">{{ ($room['image'] ?? null) ? 'Replace photo' : 'Upload a room photo' }}</span>
+                    <span data-room-photo-name class="block truncate font-jakarta text-[12px] text-editorial-body">PNG, JPG or WEBP &mdash; shown on the room card</span>
+                </span>
+            </label>
+            @error("rooms.$i.photo") <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
+        </div>
     </div>
 </div>

@@ -118,7 +118,7 @@ class HotelController extends Controller
 
         return view('admin.hotels-create', [
             'hotel' => $hotel,
-            'rooms' => old('rooms', $hotel->rooms->map->only(['id', 'name', 'guests', 'bed', 'size_label', 'price_per_night', 'stock'])->all()),
+            'rooms' => old('rooms', $hotel->rooms->map->only(['id', 'name', 'guests', 'bed', 'size_label', 'price_per_night', 'stock', 'image'])->all()),
             'amenities' => collect(self::AMENITIES)->map(fn ($a) => $a + ['checked' => in_array($a['label'], $selected, true)])->all(),
             'categories' => ['Luxury Resort', 'Resort', 'Hotel', 'Villa', 'Boutique'],
             'regions' => StoreHotelRequest::REGIONS,
@@ -171,6 +171,9 @@ class HotelController extends Controller
 
         foreach ($rooms as $i => $room) {
             $attributes = collect($room)->only(['name', 'guests', 'bed', 'size_label', 'price_per_night', 'stock'])->all() + ['sort_order' => $i];
+
+            // A new photo replaces the room's picture; without one the stored path is kept.
+            $attributes['image'] = Uploads::store($room['photo'] ?? null, 'hotels') ?? ($room['image'] ?? null);
             $model = ! empty($room['id']) ? $hotel->rooms()->whereKey($room['id'])->first() : null;
 
             $keep[] = $model ? tap($model)->update($attributes)->id : $hotel->rooms()->create($attributes)->id;
