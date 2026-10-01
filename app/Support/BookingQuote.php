@@ -139,8 +139,18 @@ final class BookingQuote
             ],
         ];
 
-        // Rooms are no longer picked by hand; they follow the party size (max
-        // BookingOptions::GUESTS_PER_ROOM guests per room) through the hidden field.
+        // A stay also books rooms: the guest may add more than the party needs, but
+        // never fewer than BookingOptions::GUESTS_PER_ROOM guests per room allows.
+        if ($perNight) {
+            $needed = (int) max(1, ceil(($this->adults + $this->children) / BookingOptions::GUESTS_PER_ROOM));
+
+            $groups[] = [
+                'name' => 'rooms', 'label' => 'Rooms', 'hint' => 'Max '.BookingOptions::GUESTS_PER_ROOM.' guests per room',
+                'value' => max($needed, $this->rooms), 'min' => $needed,
+                'price' => Money::idr($this->unitAdult, 'Rp').' / room / night',
+            ];
+        }
+
         return $groups;
     }
 

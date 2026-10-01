@@ -8,8 +8,11 @@
     <input type="hidden" name="room_id" value="{{ $order['room_id'] }}">
 @endisset
 @isset($order['rooms'])
-    {{-- Room count follows the party size; resources/js/order-quote.js keeps it in step. --}}
-    <input type="hidden" name="rooms" value="{{ $order['rooms'] }}">
+    {{-- Only when the form has no visible Rooms stepper; otherwise that field posts it
+         and a second input of the same name would fight with it. --}}
+    @unless (collect($order['party'] ?? [])->contains('name', 'rooms'))
+        <input type="hidden" name="rooms" value="{{ $order['rooms'] }}">
+    @endunless
 @endisset
 <input type="hidden" name="travel_date" value="{{ $order['travel_date'] }}">
 @if (! empty($order['check_out']))
