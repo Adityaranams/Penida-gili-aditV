@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             PortSeeder::class,
             BoatOperatorSeeder::class,
-            HotelSeeder::class,
-            ActivitySeeder::class,
-            ArticleSeeder::class,
+            // HotelSeeder, ActivitySeeder and ArticleSeeder are left out on
+            // purpose: those listings are written in the console, and seeding
+            // would bring the demo entries back every time.
             BookingSeeder::class,
         ]);
     }

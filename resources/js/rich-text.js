@@ -98,19 +98,75 @@ document.querySelectorAll('[data-editor]').forEach((root) => {
         });
     };
 
-    /**
-     * The block element the caret sits in — the last line when the caret is
-     * elsewhere. The surface itself is never a candidate: it is a <div>, so
-     * closest() would match it and we would end up replacing the editor.
-     */
-    const blockElement = () => {
-        const node = window.getSelection()?.anchorNode ?? savedRange?.startContainer;
-        const element = node?.nodeType === 1 ? node : node?.parentElement;
-        const block = element?.closest(BLOCKS);
-        const inside = block && block !== surface && surface.contains(block);
+    /** The range the commands act on: the live one when it is inside the surface. */
+    const activeRange = () => {
+        const selection = window.getSelection();
 
-        return inside ? block : surface.lastElementChild;
+        if (selection?.rangeCount) {
+            const range = selection.getRangeAt(0);
+
+            if (surface.contains(range.commonAncestorContainer)) {
+                return range;
+            }
+        }
+
+        return savedRange && surface.contains(savedRange.commonAncestorContainer) ? savedRange : null;
     };
+
+    /**
+     * The block a node sits in. The surface itself is never a candidate: it is a
+     * <div>, so closest() would match it and we would replace the whole editor.
+     */
+    const blockFor = (node) => {
+        const element = node?.nodeType === 1 ? node : node?.parentElement;
+        const block = element === surface ? null : element?.closest(BLOCKS);
+
+        return block && block !== surface && surface.contains(block) ? block : null;
+    };
+
+    /**
+     * Selecting a whole line often leaves the range boundary on the surface
+     * itself, where the offset counts children rather than characters. Resolve
+     * those boundaries to the child they stand for, or the caret lands nowhere
+     * and the command would fall through to the last line of the article.
+     */
+    const boundaryNode = (container, offset, isEnd) => {
+        if (container !== surface) {
+            return container;
+        }
+
+        const children = [...surface.childNodes];
+
+        return children[isEnd ? Math.max(0, offset - 1) : offset] ?? children.at(-1) ?? null;
+    };
+
+    /** Every block the selection touches, in document order. */
+    const blocksInSelection = () => {
+        const range = activeRange();
+
+        if (!range) {
+            return surface.lastElementChild ? [surface.lastElementChild] : [];
+        }
+
+        const start = blockFor(boundaryNode(range.startContainer, range.startOffset, false));
+
+        if (range.collapsed) {
+            return start ? [start] : [];
+        }
+
+        const end = blockFor(boundaryNode(range.endContainer, range.endOffset, true));
+        const touched = [...surface.querySelectorAll('p, h2, h3, blockquote, li')]
+            .filter((block) => range.intersectsNode(block));
+
+        if (touched.length) {
+            return touched;
+        }
+
+        return [...new Set([start, end])].filter(Boolean);
+    };
+
+    /** The first block of the selection — what the toolbar reports its state for. */
+    const blockElement = () => blocksInSelection()[0] ?? surface.lastElementChild;
 
     const currentBlock = () => blockElement()?.tagName.toLowerCase() ?? 'p';
 
@@ -139,27 +195,45 @@ document.querySelectorAll('[data-editor]').forEach((root) => {
     const setBlock = (tag) => {
         wrapLooseText();
 
-        const block = blockElement();
+        const blocks = blocksInSelection();
+        const collapsed = activeRange()?.collapsed ?? true;
+        const replacements = [];
 
-        if (block?.tagName === 'LI' || block?.tagName.toLowerCase() === tag) {
+        // List items keep their own tag; the list buttons own those.
+        blocks.filter((block) => block.tagName !== 'LI' && block.tagName.toLowerCase() !== tag)
+            .forEach((block) => {
+                const replacement = document.createElement(tag);
+                replacement.innerHTML = block.innerHTML || '<br>';
+                block.replaceWith(replacement);
+                replacements.push(replacement);
+            });
+
+        // An empty editor has no line yet: start one so the admin can type straight away.
+        if (!blocks.length) {
+            const replacement = document.createElement(tag);
+            replacement.innerHTML = '<br>';
+            surface.appendChild(replacement);
+            replacements.push(replacement);
+        }
+
+        const first = replacements[0] ?? blocks[0];
+        const last = replacements.at(-1) ?? blocks.at(-1);
+
+        if (!first || !last) {
             return;
         }
 
-        const replacement = document.createElement(tag);
-
-        // An empty editor has no line yet: start one so the admin can type straight away.
-        if (block) {
-            replacement.innerHTML = block.innerHTML || '<br>';
-            block.replaceWith(replacement);
-        } else {
-            replacement.innerHTML = '<br>';
-            surface.appendChild(replacement);
-        }
-
-        // Leave the caret at the end of the line that was just re-styled, ready to type.
+        // Keep the same text selected so the admin can carry on styling it; a
+        // plain caret just moves to the end of the line it re-styled.
         const range = document.createRange();
-        range.selectNodeContents(replacement);
-        range.collapse(false);
+
+        if (collapsed) {
+            range.selectNodeContents(last);
+            range.collapse(false);
+        } else {
+            range.setStart(first, 0);
+            range.setEnd(last, last.childNodes.length);
+        }
 
         const selection = window.getSelection();
         selection?.removeAllRanges();
