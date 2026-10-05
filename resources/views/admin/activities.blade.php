@@ -106,7 +106,7 @@
                             @method('DELETE')
                             <button type="submit" aria-label="Delete {{ $activity->name }}"
                                     class="flex size-[28px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#fee2e2]">
-                                <img src="{{ asset('images/icons/admin/activity/action-delete.svg') }}" alt="" class="h-[13.5px] w-[12px]">
+                                <img src="{{ asset('images/icons/admin/activity/action-delete-red.svg') }}" alt="" class="h-[13.5px] w-[12px]">
                             </button>
                         </form>
                     </span>
