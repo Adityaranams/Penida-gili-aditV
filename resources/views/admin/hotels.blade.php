@@ -104,19 +104,15 @@
                             <img src="{{ asset('images/icons/admin/hotel/action-view.svg') }}" alt="" class="size-[13.5px]">
                         </a>
                         <a href="{{ route('admin.hotels.edit', $hotel) }}" aria-label="Edit {{ $hotel->name }}"
-                           class="flex size-[27px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#f1f4f6]">
-                            <img src="{{ asset('images/icons/admin/hotel/action-edit.svg') }}" alt="" class="size-[15px]">
-                        </a>
-                        <a href="{{ route('admin.hotels.edit', $hotel) }}#rooms" aria-label="Manage rooms of {{ $hotel->name }}"
                            class="flex size-[26px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#f1f4f6]">
-                            <img src="{{ asset('images/icons/admin/hotel/action-rooms.svg') }}" alt="" class="size-[13.5px]">
+                            <img src="{{ asset('images/icons/admin/hotel/action-edit.svg') }}" alt="" class="size-[13.5px]">
                         </a>
                         <form action="{{ route('admin.hotels.destroy', $hotel) }}" method="post" onsubmit="return confirm('Delete {{ addslashes($hotel->name) }}? This cannot be undone.')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" aria-label="Delete {{ $hotel->name }}"
                                     class="flex size-[26px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#fee2e2]">
-                                <img src="{{ asset('images/icons/admin/hotel/action-delete.svg') }}" alt="" class="size-[13.5px]">
+                                <img src="{{ asset('images/icons/admin/hotel/action-delete.svg') }}" alt="" class="h-[13.5px] w-[12px]">
                             </button>
                         </form>
                     </span>
