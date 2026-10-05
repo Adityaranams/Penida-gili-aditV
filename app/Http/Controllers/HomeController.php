@@ -54,7 +54,7 @@ class HomeController extends Controller
             return $names->isEmpty() ? '' : ', sailed by '.$names->join(', ');
         };
 
-        return Schedule::query()
+        $routes = Schedule::query()
             ->active()
             ->with(['fromPort', 'toPort', 'vessel'])
             ->get()
@@ -78,5 +78,44 @@ class HomeController extends Controller
                     'href' => route('boats.index', ['from' => $first->fromPort->name, 'to' => $first->toPort->name]),
                 ];
             });
+
+        return $routes->isEmpty() ? $this->plannedRoutes() : $routes;
+    }
+
+    /**
+     * What the section shows before any schedule is published: the crossings
+     * the service is built around, so a fresh install still reads as a site
+     * rather than an empty block. Real schedules replace these as soon as the
+     * console has any.
+     *
+     * @return Collection<int, array{title: string, body: string, icon: string, href: string}>
+     */
+    private function plannedRoutes(): Collection
+    {
+        return collect([
+            [
+                'icon' => 'route-penida.svg',
+                'from' => 'Bali',
+                'to' => 'Nusa Penida',
+                'body' => 'Frequent hourly crossings. The perfect choice for a day trip to witness the iconic Kelingking Beach or Crystal Bay.',
+            ],
+            [
+                'icon' => 'route-gili.svg',
+                'from' => 'Bali',
+                'to' => 'Gili Trawangan',
+                'body' => 'Enjoy a smooth sea journey to the ultimate car-free island hub renowned for its white sand beaches and vibrant nightlife.',
+            ],
+            [
+                'icon' => 'route-lembongan.svg',
+                'from' => 'Lombok',
+                'to' => 'Nusa Lembongan',
+                'body' => 'A specialized route tailored for surfers and explorers seeking exotic coral reefs and a laid-back atmosphere.',
+            ],
+        ])->map(fn (array $route) => [
+            'icon' => $route['icon'],
+            'title' => $route['from'].' ➔ '.$route['to'],
+            'body' => $route['body'],
+            'href' => route('boats.index', ['from' => $route['from'], 'to' => $route['to']]),
+        ]);
     }
 }

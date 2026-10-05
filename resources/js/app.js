@@ -12,6 +12,7 @@ import './lightbox';
 import './article-search';
 import './repeater';
 import './bulk-select';
+import './radio-cards';
 import './rich-text';
 import './admin-transactions';
 

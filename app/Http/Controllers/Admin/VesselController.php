@@ -44,12 +44,29 @@ class VesselController extends Controller
         // The Figma form has no operator picker: the fleet belongs to the (single) operator on file.
         $vessel = Vessel::query()->create($this->payload($request) + [
             'code' => $request->input('code') ?: Vessel::nextCode(),
-            'boat_operator_id' => $request->input('boat_operator_id') ?: BoatOperator::query()->orderBy('id')->value('id'),
+            'boat_operator_id' => $request->input('boat_operator_id') ?: $this->defaultOperatorId(),
         ]);
 
         $this->syncTestimonials($request, $vessel);
 
         return redirect()->route('admin.boats')->with('flash', "{$vessel->name} added to the fleet.");
+    }
+
+    /**
+     * Boats hang off an operator in the schema, but the console never asks for
+     * one. Fall back to the first operator on file, and create a placeholder
+     * when the table is empty so adding the very first boat still works.
+     */
+    private function defaultOperatorId(): int
+    {
+        return BoatOperator::query()->orderBy('id')->value('id')
+            ?? BoatOperator::query()->create([
+                // The name reaches the public order page, so keep it the brand
+                // rather than something internal.
+                'name' => 'Penida Gili',
+                'description' => '',
+                'is_active' => true,
+            ])->id;
     }
 
     public function edit(Vessel $vessel): View

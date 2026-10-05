@@ -7,18 +7,20 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the catalogue with the content the Figma frames were designed around.
+     * Seed the admin account and the catalogue snapshot committed to the repo.
      */
     public function run(): void
     {
         $this->call([
             AdminUserSeeder::class,
-            PortSeeder::class,
-            BoatOperatorSeeder::class,
-            // HotelSeeder, ActivitySeeder and ArticleSeeder are left out on
-            // purpose: those listings are written in the console, and seeding
-            // would bring the demo entries back every time.
-            BookingSeeder::class,
+            // The catalogue comes from the committed snapshot, so every machine
+            // shows the same content. The demo seeders (PortSeeder,
+            // BoatOperatorSeeder, HotelSeeder, ActivitySeeder, ArticleSeeder,
+            // BookingSeeder) stay available to call by hand when a throwaway
+            // database needs filling.
+            ContentSeeder::class,
+            // Refreshes the published crossings from database/content/timetable.csv.
+            TimetableSeeder::class,
         ]);
     }
 }
