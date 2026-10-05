@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 
 #[Fillable([
     'boat_operator_id', 'vessel_id', 'from_port_id', 'to_port_id', 'departure_time', 'arrival_time',
-    'price_adult', 'price_child', 'price_foreign', 'days', 'status',
+    'price_adult', 'price_child', 'price_foreign', 'price_foreign_child', 'days', 'status',
 ])]
 class Schedule extends Model
 {
@@ -32,6 +32,7 @@ class Schedule extends Model
             'price_adult' => 'integer',
             'price_child' => 'integer',
             'price_foreign' => 'integer',
+            'price_foreign_child' => 'integer',
         ];
     }
 

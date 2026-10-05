@@ -25,6 +25,7 @@ class ScheduleFactory extends Factory
             'price_adult' => 180_000,
             'price_child' => 135_000,
             'price_foreign' => null,
+            'price_foreign_child' => null,
             'days' => null,
             'status' => ListingStatus::Active,
         ];

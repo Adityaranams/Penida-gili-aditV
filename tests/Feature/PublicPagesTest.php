@@ -181,4 +181,45 @@ class PublicPagesTest extends TestCase
             ->assertSee('Harbour Basics')
             ->assertDontSee('Temple Manners');
     }
+
+    public function test_schedule_search_lists_sailings_on_the_route_with_guest_totals(): void
+    {
+        $sanur = Port::factory()->create(['name' => 'Sanur', 'area' => 'Bali']);
+        $penida = Port::factory()->create(['name' => 'Nusa Penida', 'area' => 'Nusa Penida']);
+        $gili = Port::factory()->create(['name' => 'Gili Air', 'area' => 'Gili']);
+
+        $operator = BoatOperator::factory()->create();
+        $vessel = Vessel::factory()->for($operator, 'operator')->create(['name' => 'Penida Runner']);
+        Schedule::factory()->for($operator, 'operator')->create([
+            'vessel_id' => $vessel->id, 'from_port_id' => $sanur->id, 'to_port_id' => $penida->id,
+            'departure_time' => '08:00', 'arrival_time' => '08:45', 'price_adult' => 100_000,
+        ]);
+        Schedule::factory()->for($operator, 'operator')->create(['from_port_id' => $sanur->id, 'to_port_id' => $gili->id, 'departure_time' => '09:15']);
+        Schedule::factory()->for($operator, 'operator')->draft()->create(['from_port_id' => $sanur->id, 'to_port_id' => $penida->id, 'departure_time' => '11:30']);
+
+        $this->get(route('boats.schedules', ['from' => 'Sanur', 'to' => 'Nusa Penida', 'guests' => 3]))
+            ->assertOk()
+            ->assertSee('Penida Runner')
+            ->assertSee('08:00')
+            ->assertSee('IDR 300.000')
+            ->assertDontSee('09:15')
+            ->assertDontSee('11:30');
+    }
+
+    public function test_where_to_search_lists_activities_on_that_island(): void
+    {
+        Activity::factory()->create(['name' => 'Manta Snorkel Trip', 'location' => 'Manta Bay, Nusa Penida', 'place_label' => 'Manta Bay']);
+        Activity::factory()->create(['name' => 'Kecak Fire Dance', 'location' => 'Uluwatu, Badung', 'place_label' => 'Uluwatu']);
+
+        $this->get(route('activities.explore', ['q' => 'Nusa Penida']))
+            ->assertOk()
+            ->assertSee('Things to do')
+            ->assertSee('Manta Snorkel Trip')
+            ->assertDontSee('Kecak Fire Dance');
+
+        $this->get(route('activities.explore', ['q' => 'Bali']))
+            ->assertOk()
+            ->assertSee('Kecak Fire Dance')
+            ->assertDontSee('Manta Snorkel Trip');
+    }
 }
