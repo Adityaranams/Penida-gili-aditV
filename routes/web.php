@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/boat', [BoatOperatorController::class, 'index'])->name('boats.index');
+Route::get('/boat/schedules', [BoatOperatorController::class, 'schedules'])->name('boats.schedules');
 Route::get('/boat/vessel/{vessel}', [BoatOperatorController::class, 'vessel'])->name('boats.vessel');
 Route::get('/boat/{boat}/order', [BoatOperatorController::class, 'order'])->name('boats.order');
 Route::post('/boat/{boat}/order', [BookingController::class, 'storeBoat'])->name('boats.book');
 
 Route::get('/activity', [ActivityController::class, 'index'])->name('activities.index');
+Route::get('/activity/explore', [ActivityController::class, 'explore'])->name('activities.explore');
 Route::get('/activity/{activity}', [ActivityController::class, 'show'])->name('activities.show');
 Route::get('/activity/{activity}/order', [ActivityController::class, 'order'])->name('activities.order');
 Route::post('/activity/{activity}/order', [BookingController::class, 'storeActivity'])->name('activities.book');

@@ -48,6 +48,7 @@ class StoreScheduleRequest extends FormRequest
             'price_adult' => ['required', 'integer', 'min:0'],
             'price_child' => ['required', 'integer', 'min:0'],
             'price_foreign' => ['nullable', 'integer', 'min:0'],
+            'price_foreign_child' => ['nullable', 'integer', 'min:0'],
             'days' => ['nullable', 'array'],
             'days.*' => [Rule::in(Schedule::DAYS)],
             'status' => ['required', Rule::enum(ListingStatus::class)],
@@ -75,6 +76,7 @@ class StoreScheduleRequest extends FormRequest
         $days = array_values(array_unique($data['days'] ?? []));
         $data['days'] = ($days === [] || count($days) === count(Schedule::DAYS)) ? null : $days;
         $data['price_foreign'] = $data['price_foreign'] ?? null;
+        $data['price_foreign_child'] = $data['price_foreign_child'] ?? null;
 
         return $data;
     }

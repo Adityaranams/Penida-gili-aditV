@@ -83,10 +83,11 @@
                         Set base fares for this specific schedule. These prices will override default route pricing if defined here.
                     </p>
 
-                    <div class="mt-[24px] grid [&>*]:min-w-0 gap-[16px] sm:grid-cols-3">
+                    <div class="mt-[24px] grid [&>*]:min-w-0 gap-[16px] sm:grid-cols-2">
                         <x-admin.field label="Base Price (Local Pax)" name="price_adult" type="number" :value="$schedule->price_adult" placeholder="0" prefix="IDR" :required="true" />
                         <x-admin.field label="Base Price (Foreign Pax)" name="price_foreign" type="number" :value="$schedule->price_foreign" placeholder="0" prefix="IDR" />
                         <x-admin.field label="Child Price" name="price_child" type="number" :value="$schedule->price_child" placeholder="0" prefix="IDR" :required="true" />
+                        <x-admin.field label="Child Price (Foreign Pax)" name="price_foreign_child" type="number" :value="$schedule->price_foreign_child" placeholder="0" prefix="IDR" />
                     </div>
                 </div>
             </div>
