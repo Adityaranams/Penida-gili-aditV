@@ -194,3 +194,48 @@
 
 /* Jumping from the table of contents must clear the sticky header. */
 .rich-text h2, .rich-text h3 { scroll-margin-top: 96px; }
+
+/* Mobile tab bar: scrolling down shrinks it to a slim strip so the page has more
+   room; scrolling back up restores it. resources/js/tabbar-shrink.js sets
+   `data-shrunk` on the <nav>. */
+.tabbar__row,
+.tabbar__icon,
+.tabbar__label,
+.tabbar__tab {
+    transition: height 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
+                transform 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
+                opacity 200ms linear,
+                margin 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.tabbar__row {
+    height: 64px;
+}
+
+.tabbar[data-shrunk] .tabbar__row {
+    height: 44px;
+}
+
+.tabbar[data-shrunk] .tabbar__tab {
+    gap: 0;
+}
+
+.tabbar[data-shrunk] .tabbar__icon {
+    transform: scale(0.82);
+}
+
+/* The captions fold away; the icons alone keep the bar readable while it is small. */
+.tabbar[data-shrunk] .tabbar__label {
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tabbar__row,
+    .tabbar__icon,
+    .tabbar__label,
+    .tabbar__tab {
+        transition: none;
+    }
+}

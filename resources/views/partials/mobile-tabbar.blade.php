@@ -13,23 +13,24 @@
     $current = trim($__env->yieldContent('nav-active')) ?: null;
 @endphp
 
-<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-[#e5e7eb] bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Primary">
-    <ul class="flex h-[64px] items-center justify-around">
+{{-- Scrolling down shrinks the bar (see resources/js/tabbar-shrink.js); scrolling back up restores it. --}}
+<nav data-tabbar class="tabbar fixed inset-x-0 bottom-0 z-50 border-t border-[#e5e7eb] bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Primary">
+    <ul class="tabbar__row flex items-center justify-around">
         @foreach ($tabs as $key => $tab)
             <li>
                 <a href="{{ $tab['route'] }}"
-                   @class(['flex flex-col items-center gap-[4px]'])
+                   @class(['tabbar__tab flex flex-col items-center gap-[4px]'])
                    @if ($current === $key) aria-current="page" @endif>
                     {{-- The SVGs ship with a hard-coded fill, so paint them via mask so the colour follows the active state. --}}
                     <span aria-hidden="true"
                           style="width: {{ $tab['w'] }}px; height: {{ $tab['h'] }}px; -webkit-mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain; mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain;"
                           @class([
-                              'block transition-colors duration-300',
+                              'tabbar__icon block transition-colors duration-300',
                               'bg-brand' => $current === $key,
                               'bg-[#64748b]' => $current !== $key,
                           ])></span>
                     <span @class([
-                        'text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px]',
+                        'tabbar__label text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px]',
                         'text-brand' => $current === $key,
                         'text-[#64748b]' => $current !== $key,
                     ])>{{ $tab['label'] }}</span>

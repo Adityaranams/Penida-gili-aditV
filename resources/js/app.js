@@ -9,6 +9,7 @@ import './order-email';
 import './admin-login';
 import './uploader';
 import './lightbox';
+import './tabbar-shrink';
 import './article-search';
 import './repeater';
 import './bulk-select';
