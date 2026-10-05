@@ -16,36 +16,27 @@ class HotelSeeder extends Seeder
 {
     use PicksDemoPhotos;
 
-    /** The design assets; hotels have no admin uploads to borrow from yet. */
-    private const PHOTOS = [
-        'nusa-penida-resort.png',
-        'detail/pool-main.png',
-        'meru-resort.png',
-        'detail/sunset-dining.png',
-        'grand-hyatt-resort.png',
-        'detail/suite.png',
-        'detail/bedroom.png',
-        'detail/room-villa.png',
-        'detail/cocktail.png',
-        'detail/room-deluxe.png',
-    ];
+    /**
+     * Covers resolve against public/images/hotels, while gallery and room
+     * photos resolve against public/images/hotels/detail — so the two lists
+     * hold bare filenames from their own folder, never a shared path.
+     */
+    private const COVERS = ['nusa-penida-resort.png', 'meru-resort.png', 'grand-hyatt-resort.png'];
 
-    private const ROOM_PHOTOS = ['detail/room-deluxe.png', 'detail/room-villa.png', 'detail/suite.png', 'detail/bedroom.png'];
+    private const GALLERY = ['pool-main.png', 'sunset-dining.png', 'suite.png', 'bedroom.png', 'room-villa.png', 'cocktail.png', 'room-deluxe.png'];
+
+    private const ROOM_PHOTOS = ['room-deluxe.png', 'room-villa.png', 'suite.png', 'bedroom.png'];
 
     public function run(): void
     {
-        $photos = $this->photoPool('hotels', self::PHOTOS);
-
         foreach ($this->hotels() as $i => $data) {
             $rooms = $data['rooms'];
             $amenities = $this->amenities($data['amenity_labels']);
             unset($data['rooms'], $data['amenity_labels']);
 
-            $slot = $i * 4;
-
             $hotel = Hotel::query()->updateOrCreate(['name' => $data['name']], $data + [
-                'image' => $this->photo($photos, $slot),
-                'gallery' => $this->galleryFor($photos, $slot, $data['name'], 3),
+                'image' => self::COVERS[$i % count(self::COVERS)],
+                'gallery' => $this->galleryFor(self::GALLERY, $i * 3, $data['name'], 3),
                 'amenities' => $amenities,
                 'status' => ListingStatus::Active,
             ]);
