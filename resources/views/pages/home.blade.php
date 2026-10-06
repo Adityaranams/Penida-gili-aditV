@@ -12,6 +12,9 @@
     <div class="hidden lg:block">
         @include('partials.home.hero')
     </div>
+
+    {{-- Shared by the mobile and desktop search forms, so it lives outside both. --}}
+    @include('partials.port-picker')
 @endsection
 
 @section('content')

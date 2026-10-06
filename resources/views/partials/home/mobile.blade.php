@@ -1,10 +1,5 @@
 {{-- Figma node 1:2386 — "Dashboard full" (mobile home, 390px). Rendered below lg only; the desktop sections are hidden there. --}}
 @php
-    $mFields = [
-        ['label' => 'From',     'placeholder' => 'Origin Place',      'name' => 'from', 'icon' => 'pin'],
-        ['label' => 'To',       'placeholder' => 'Destination Place', 'name' => 'to',   'icon' => 'pin'],
-        ['label' => 'Check In', 'placeholder' => 'Add Your Date',     'name' => 'date', 'icon' => 'calendar'],
-    ];
     $mFeatures = [
         ['icon' => 'feature-booking.svg', 'w' => 20, 'h' => 16, 'title' => 'Instant & Convenient Booking', 'body' => 'Select your route, pay, and receive an e-ticket straight to your inbox—no need to queue at the harbor.'],
         ['icon' => 'feature-pricing.svg', 'w' => 22, 'h' => 16, 'title' => 'Honest & Transparent Pricing', 'body' => 'No hidden fees. The price you see is the final price you pay.'],
@@ -32,36 +27,7 @@
                 Book fast boat tickets and private charters to your dream destinations in minutes. Safe, comfortable, and hassle-free journeys.
             </p>
 
-            {{-- Booking form (1:2649) --}}
-            <form action="{{ route('boats.index') }}" method="get" data-reveal style="--reveal-delay: 320ms"
-                  class="mt-[40px] w-full rounded-[16px] border border-white/20 bg-white/10 p-[17px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] backdrop-blur-[6px]">
-                <div class="flex flex-col gap-[16px]">
-                    @foreach ($mFields as $field)
-                        <label class="block">
-                            <span class="block text-center text-[14px] font-medium leading-[20px] text-white">{{ $field['label'] }}</span>
-                            <div class="mt-[4px] flex items-center rounded-[8px] border border-white/20 bg-white/10 p-[13px]">
-                                <span class="relative mr-[8px] block h-[20px] w-[18px] shrink-0">
-                                    @if ($field['icon'] === 'pin')
-                                        <img src="{{ asset('images/icons/mobile/pin-outline.svg') }}" alt="" class="absolute inset-[15.82%_16.67%_13.97%_16.67%] size-auto h-[70%] w-[67%]">
-                                        <img src="{{ asset('images/icons/mobile/pin-dot.svg') }}" alt="" class="absolute inset-[34.81%_37.5%_42.4%_37.5%] size-auto h-[23%] w-[25%]">
-                                    @else
-                                        <img src="{{ asset('images/icons/mobile/calendar.svg') }}" alt="" class="absolute inset-[15.82%_12.5%] size-auto h-[68%] w-[75%]">
-                                    @endif
-                                </span>
-                                <input type="text" name="{{ $field['name'] }}" placeholder="{{ $field['placeholder'] }}"
-                                       class="w-full min-w-0 bg-transparent py-px text-[14px] leading-normal text-white placeholder:text-white/50 focus:outline-none">
-                            </div>
-                        </label>
-                    @endforeach
-
-                    <button type="submit"
-                            class="mt-[8px] flex w-full items-center justify-center gap-[8px] rounded-[8px] bg-[#2563eb] px-[24px] py-[12px] text-[16px] font-semibold leading-[24px] text-white
-                                   transition-[transform,box-shadow] duration-300 ease-smooth active:scale-[0.98]">
-                        <img src="{{ asset('images/icons/mobile/search.svg') }}" alt="" class="size-[20px]">
-                        Search
-                    </button>
-                </div>
-            </form>
+            @include('partials.home.mobile-search')
         </div>
     </header>
 

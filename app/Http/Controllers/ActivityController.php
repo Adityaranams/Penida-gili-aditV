@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Support\BookingQuote;
+use App\Support\Destinations;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -13,10 +15,59 @@ class ActivityController extends Controller
     /**
      * Activity listing — Figma node 1:623.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
+        $destination = $request->string('q')->trim()->value();
+
         return view('pages.activities', [
-            'activities' => Activity::query()->active()->orderByDesc('rating')->paginate(9),
+            'activities' => Activity::query()
+                ->active()
+                ->when($destination !== '', fn ($query) => $query->where(fn ($query) => $query
+                    ->where('location', 'like', "%{$destination}%")
+                    ->orWhere('name', 'like', "%{$destination}%")))
+                ->orderByDesc('rating')
+                ->paginate(9)
+                ->withQueryString(),
+        ]);
+    }
+
+    /**
+     * "Things to do in …" — results of the hero "Where To?" search (?q=).
+     * A known island narrows by its keywords; any other text searches name and location.
+     */
+    public function explore(Request $request): View
+    {
+        $search = $request->string('q')->trim()->value();
+        $destination = Destinations::find($search);
+
+        $tabs = Destinations::all()->map(function (array $place, string $slug) {
+            $matches = Destinations::scope(Activity::query()->active(), $place['terms']);
+
+            return [
+                'slug' => $slug,
+                'name' => $place['name'],
+                'count' => (clone $matches)->count(),
+                'image' => (clone $matches)->whereNotNull('image')->orderByDesc('rating')->first()?->image_url,
+            ];
+        })->values();
+
+        $activities = Activity::query()
+            ->active()
+            ->when($destination, fn (Builder $query) => Destinations::scope($query, $destination['terms']))
+            ->when(! $destination && $search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%")
+                ->orWhere('place_label', 'like', "%{$search}%")))
+            ->orderByDesc('rating')
+            ->paginate(9)
+            ->withQueryString();
+
+        return view('pages.activity-explore', [
+            'search' => $search,
+            'destination' => $destination,
+            'tabs' => $tabs,
+            'totalCount' => Activity::query()->active()->count(),
+            'activities' => $activities,
         ]);
     }
 

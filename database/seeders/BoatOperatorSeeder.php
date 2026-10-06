@@ -103,6 +103,7 @@ class BoatOperatorSeeder extends Seeder
                         'price_adult' => $price,
                         'price_child' => (int) round($price * 0.75),
                         'price_foreign' => (int) round($price * 1.8),
+                        'price_foreign_child' => (int) round($price * 1.8 * 0.75),
                         'days' => null,
                         'status' => ListingStatus::Active,
                     ],
