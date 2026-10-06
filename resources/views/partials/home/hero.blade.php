@@ -133,4 +133,3 @@
     </div>
 </header>
 
-@include('partials.port-picker')

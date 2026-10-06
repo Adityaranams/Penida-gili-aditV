@@ -2,6 +2,8 @@ import './stepper';
 import './search-tabs';
 import './port-picker';
 import './calendar';
+import './center-selected';
+import './tabbar';
 import './order-quote';
 import './article-editor';
 import './confirm-submit';
