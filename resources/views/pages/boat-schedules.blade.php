@@ -69,7 +69,7 @@
 @section('content')
     <section class="container-page grid gap-[28px] py-[40px] font-jakarta lg:grid-cols-[300px_1fr] lg:py-[56px]">
         {{-- Sidebar --}}
-        <aside class="flex flex-col gap-[24px]">
+        <aside class="order-2 flex flex-col gap-[24px] lg:order-none">
             {{-- Change search --}}
             <form action="{{ route('boats.schedules') }}" method="get"
                   class="rounded-[18px] border border-line bg-surface p-[18px] shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
@@ -155,12 +155,12 @@
         @include('partials.port-picker')
 
         {{-- Results --}}
-        <div class="min-w-0">
+        <div class="order-1 min-w-0 lg:order-none">
             {{-- Date strip --}}
-            <div class="flex gap-[10px] overflow-x-auto pb-[4px] sm:justify-center">
+            <div data-center-selected class="flex gap-[10px] overflow-x-auto pb-[4px] [scrollbar-width:none] sm:justify-center [&::-webkit-scrollbar]:hidden">
                 @foreach ($days as $day)
                     @php $isSelected = $day['date']->isSameDay($search['date']); @endphp
-                    <a @unless ($day['is_past']) href="{{ $query(['date' => $day['date']->toDateString()]) }}" @endunless @if ($day['is_past']) aria-disabled="true" @endif
+                    <a @if ($isSelected) aria-current="date" @endif @unless ($day['is_past']) href="{{ $query(['date' => $day['date']->toDateString()]) }}" @endunless @if ($day['is_past']) aria-disabled="true" @endif
                        class="flex w-[64px] shrink-0 flex-col items-center rounded-[12px] border py-[8px] transition
                               {{ $isSelected ? 'border-brand bg-brand text-on-brand shadow-lg shadow-brand/30' : 'border-line bg-surface text-ink hover:border-brand/40' }} {{ $day['is_past'] ? 'pointer-events-none opacity-40' : '' }}">
                         <span class="text-[10px] font-semibold uppercase {{ $isSelected ? 'text-on-brand/80' : 'text-ink-muted' }}">{{ $day['date']->format('D') }}</span>

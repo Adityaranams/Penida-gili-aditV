@@ -13,23 +13,23 @@
     $current = trim($__env->yieldContent('nav-active')) ?: null;
 @endphp
 
-<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-[#e5e7eb] bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Primary">
-    <ul class="flex h-[64px] items-center justify-around">
+<nav data-tabbar class="group/tabbar fixed inset-x-0 bottom-0 z-50 border-t border-[#e5e7eb] bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Primary">
+    <ul class="flex h-[64px] items-center justify-around transition-[height] duration-300 ease-out group-data-[compact]/tabbar:h-[44px]">
         @foreach ($tabs as $key => $tab)
             <li>
                 <a href="{{ $tab['route'] }}"
-                   @class(['flex flex-col items-center gap-[4px]'])
+                   @class(['flex flex-col items-center gap-[4px] transition-[gap] duration-300 group-data-[compact]/tabbar:gap-0'])
                    @if ($current === $key) aria-current="page" @endif>
                     {{-- The SVGs ship with a hard-coded fill, so paint them via mask so the colour follows the active state. --}}
                     <span aria-hidden="true"
                           style="width: {{ $tab['w'] }}px; height: {{ $tab['h'] }}px; -webkit-mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain; mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain;"
                           @class([
-                              'block transition-colors duration-300',
+                              'block transition-[background-color,transform] duration-300 group-data-[compact]/tabbar:scale-110',
                               'bg-brand' => $current === $key,
                               'bg-[#64748b]' => $current !== $key,
                           ])></span>
                     <span @class([
-                        'text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px]',
+                        'block max-h-[15px] overflow-hidden text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px] transition-[max-height,opacity] duration-300 group-data-[compact]/tabbar:max-h-0 group-data-[compact]/tabbar:opacity-0',
                         'text-brand' => $current === $key,
                         'text-[#64748b]' => $current !== $key,
                     ])>{{ $tab['label'] }}</span>

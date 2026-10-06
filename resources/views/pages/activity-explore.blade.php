@@ -53,9 +53,9 @@
 @section('content')
     <section class="container-page relative z-20 -mt-[56px] font-jakarta">
         {{-- Destination tabs --}}
-        <div class="flex gap-[8px] overflow-x-auto rounded-[22px] bg-surface p-[8px] shadow-[0_12px_40px_rgba(15,34,54,0.12)] ring-1 ring-black/[0.04] lg:justify-between">
+        <div data-center-selected class="flex gap-[8px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-[22px] bg-surface p-[8px] shadow-[0_12px_40px_rgba(15,34,54,0.12)] ring-1 ring-black/[0.04] lg:justify-between">
             @php $isAll = ! $destination && $search === ''; @endphp
-            <a href="{{ route('activities.explore') }}"
+            <a href="{{ route('activities.explore') }}" @if ($isAll) aria-current="page" @endif
                class="flex min-w-[150px] flex-1 items-center gap-[10px] rounded-[16px] px-[10px] py-[8px] transition {{ $isAll ? 'bg-[#0F2236] text-on-hero' : 'hover:bg-surface-muted' }}">
                 <span class="flex size-[40px] shrink-0 items-center justify-center rounded-[12px] {{ $isAll ? 'bg-white/10 text-on-hero' : 'bg-brand/10 text-brand' }}">
                     {!! $icon('M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', 'size-[16px]') !!}
@@ -68,7 +68,7 @@
 
             @foreach ($tabs as $tab)
                 @php $isActive = ($destination['slug'] ?? null) === $tab['slug']; @endphp
-                <a href="{{ route('activities.explore', ['q' => $tab['name']]) }}"
+                <a href="{{ route('activities.explore', ['q' => $tab['name']]) }}" @if ($isActive) aria-current="page" @endif
                    class="flex min-w-[170px] flex-1 items-center gap-[10px] rounded-[16px] px-[10px] py-[8px] transition {{ $isActive ? 'bg-[#0F2236] text-on-hero' : 'hover:bg-surface-muted' }}">
                     @if ($tab['image'])
                         <img src="{{ $tab['image'] }}" alt="" class="size-[40px] shrink-0 rounded-[12px] object-cover">
