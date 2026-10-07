@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreActivityRequest;
 use App\Models\Activity;
 use App\Models\Schedule;
+use App\Support\Destinations;
 use App\Support\RichText;
 use App\Support\Uploads;
 use Illuminate\Http\RedirectResponse;
@@ -116,6 +117,7 @@ class ActivityController extends Controller
             'activity' => $activity,
             'days' => Schedule::DAYS,
             'categories' => self::CATEGORIES,
+            'destinations' => Destinations::all()->pluck('name')->values()->all(),
             'statuses' => [
                 ['value' => ListingStatus::Active->value, 'label' => 'Active / Published', 'description' => 'Visible & bookable immediately'],
                 ['value' => ListingStatus::Draft->value, 'label' => 'Draft', 'description' => 'Save work without releasing'],

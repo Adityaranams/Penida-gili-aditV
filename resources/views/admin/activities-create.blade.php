@@ -54,8 +54,15 @@
                         </div>
 
                         <div class="grid [&>*]:min-w-0 gap-[20px] sm:grid-cols-2">
+                            {{-- Destination decides which island tab the activity is listed under;
+                                 Location is the district or village shown beside it. --}}
+                            <x-admin.field label="Destination" name="location" :value="$activity->location" :options="$destinations" placeholder="Select destination..."
+                                           help="Groups the activity under this island on the Things to do page." />
                             <x-admin.field label="Location" name="place_label" :value="$activity->place_label" placeholder="Penglipuran"
-                                           help="Shown on the activity card next to the pin icon." />
+                                           help="District or village, shown on the card next to the pin icon." />
+                        </div>
+
+                        <div class="grid [&>*]:min-w-0 gap-[20px] sm:grid-cols-2">
                             <x-admin.field label="Rating" name="rating" type="number" step="0.1" min="1" max="5" :value="$activity->rating > 0 ? $activity->rating : null" placeholder="4.8"
                                            help="Shown on the card. Leave empty to hide the stars." />
                         </div>

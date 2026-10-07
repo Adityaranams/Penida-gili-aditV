@@ -126,7 +126,10 @@
 
     <div class="container-page mt-[50px] border-t border-line-card pt-[20px]">
         <p class="text-center text-[16px] leading-[30px] text-ink-muted">
-            &copy; Copyright Penida Gili  {{ date('Y') }} | Design &amp; Develop MaiHarta
+            &copy; Copyright Penida Gili  {{ date('Y') }} | Design &amp; Develop 
+            <a href="https://www.maiharta.com/" target="_blank" rel="noopener"class="text-black hover:text-blue-600 hover:underline transition">CV Maiharta</a>
+            <span class="mx-[5px]">|</span>
+            <a href="http://localhost:8000/admin" target="_blank" rel="noopener"class="text-black hover:text-blue-600 hover:underline transition">Admin</a>
         </p>
     </div>
 </footer>

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\ListingStatus;
 use App\Models\Schedule;
+use App\Support\Destinations;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -55,7 +56,8 @@ class StoreActivityRequest extends FormRequest
             'instant_confirmation' => ['nullable', 'boolean'],
             'cancellation_policy' => ['nullable', Rule::in(array_keys(self::CANCELLATION_POLICIES))],
             'place_label' => ['nullable', 'string', 'max:80'],
-            'location' => ['nullable', 'string', 'max:160'],
+            // The destination picker; free text would silently fall outside every island tab.
+            'location' => ['nullable', Rule::in(Destinations::all()->pluck('name')->all())],
             'price_adult' => ['required', 'integer', 'min:0'],
             'price_child' => ['nullable', 'integer', 'min:0'],
             'price_was' => ['nullable', 'integer', 'min:0'],

@@ -83,13 +83,16 @@
                     <div class="group flex w-full items-center gap-[16px] {{ $index === 0 ? 'lg:w-auto lg:flex-none' : 'flex-1' }}">
                         <img src="{{ asset('images/icons/search/'.$field['icon']) }}" alt=""
                              class="size-[40px] shrink-0 opacity-80 transition-opacity duration-300 group-focus-within:opacity-100">
-                        <label class="block w-full">
+                        {{-- The guests cell is a plain <div>, not a <label>: a label adopts the
+                             first labelable element inside it as its control, and here that is the
+                             − button, so pointing at + put :hover on − as well. --}}
+                        <{{ $field['name'] === 'guests' ? 'div' : 'label' }} class="block w-full">
                             <span class="block text-[24px] font-medium leading-none text-on-hero">{{ $field['label'] }}</span>
                             @if ($field['name'] === 'guests')
                                 <span data-stepper class="mt-[12px] flex items-center gap-[12px] text-[21px] leading-none text-on-hero">
                                     <button type="button" data-step="-1" aria-label="Kurangi tamu"
                                             class="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-white/40 leading-none transition-colors hover:bg-white/20"><svg class="size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-                                    <input type="number" name="guests" value="1" min="1" max="20"
+                                    <input type="number" name="guests" value="1" min="1" max="20" aria-label="Jumlah tamu"
                                            class="w-[32px] bg-transparent p-0 text-center font-medium tabular-nums focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
                                     <button type="button" data-step="1" aria-label="Tambah tamu"
                                             class="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-white/40 leading-none transition-colors hover:bg-white/20"><svg class="size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -101,7 +104,7 @@
                                            class="w-full min-w-0 bg-transparent text-[21px] leading-none text-on-hero [color-scheme:dark] placeholder:text-on-hero-soft focus:outline-none [&::-webkit-calendar-picker-indicator]:!hidden [&::-webkit-list-button]:!hidden {{ $field['name'] === 'to' ? 'lg:w-[200px]' : 'lg:w-[150px]' }}">
                                 </span>
                             @endif
-                        </label>
+                        </{{ $field['name'] === 'guests' ? 'div' : 'label' }}>
                         @unless ($field['name'] === 'guests')
                             <button type="button" data-open-picker aria-label="Buka pilihan {{ $field['label'] }}" class="shrink-0 rounded-full p-[4px] text-on-hero-soft transition-colors hover:bg-white/15 hover:text-on-hero">
                                 <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>

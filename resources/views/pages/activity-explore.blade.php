@@ -91,7 +91,7 @@
                     <div class="relative h-[200px] overflow-hidden rounded-[16px]">
                         <img src="{{ $activity->image_url }}" alt="{{ $activity->name }}" class="size-full object-cover transition-transform duration-700 group-hover:scale-105">
                         <span class="absolute left-[10px] top-[10px] inline-flex items-center gap-[4px] rounded-full bg-surface/95 px-[9px] py-[4px] text-[10px] font-semibold text-ink shadow-sm">
-                            {!! $icon($pin, 'size-[11px] text-brand') !!} {{ str($activity->location)->afterLast(',')->trim() }}
+                            {!! $icon($pin, 'size-[11px] text-brand') !!} {{ str($activity->location ?: $activity->place_label)->afterLast(',')->trim() }}
                         </span>
                     </div>
 
@@ -135,10 +135,8 @@
             @endforelse
         </div>
 
-        @if ($activities->hasPages())
-            <div class="pb-[80px]">
-                @include('components.pagination', ['paginator' => $activities])
-            </div>
-        @endif
+        <div class="pb-[80px]">
+            @include('components.pagination', ['paginator' => $activities])
+        </div>
     </section>
 @endsection

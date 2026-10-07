@@ -47,7 +47,9 @@ class ActivityController extends Controller
                 'slug' => $slug,
                 'name' => $place['name'],
                 'count' => (clone $matches)->count(),
-                'image' => (clone $matches)->whereNotNull('image')->orderByDesc('rating')->first()?->image_url,
+                // The island's own photo, so the tab and the hero stay the same
+                // whatever activities happen to be published.
+                'image' => asset('images/'.$place['image']),
             ];
         })->values();
 

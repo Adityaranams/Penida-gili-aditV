@@ -222,4 +222,39 @@ class PublicPagesTest extends TestCase
             ->assertSee('Kecak Fire Dance')
             ->assertDontSee('Manta Snorkel Trip');
     }
+
+    public function test_the_guests_stepper_is_not_wrapped_in_a_label(): void
+    {
+        // A <label> adopts the first labelable element inside it as its control.
+        // With the stepper inside one that was the - button, so pointing at +
+        // put :hover on - as well.
+        $html = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<div class="block w-full">\s*<span[^>]*>Guests/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<label[^>]*>(?:(?!<\/label>).)*?data-stepper/s', $html);
+    }
+
+    public function test_explore_pages_nine_activities_at_a_time_and_names_their_place(): void
+    {
+        Activity::factory()->count(10)->sequence(fn ($sequence) => [
+            'name' => 'Island Outing '.($sequence->index + 1),
+            // Admin-created activities carry only a place label, so the card has
+            // to fall back to it for the pin badge.
+            'location' => null,
+            'place_label' => 'Nusa Penida',
+        ])->create();
+
+        $first = $this->get(route('activities.explore'));
+        $first->assertOk()->assertSee('Nusa Penida');
+        $this->assertCount(9, $first->viewData('activities')->items());
+
+        $second = $this->get(route('activities.explore', ['page' => 2]));
+        $second->assertOk();
+        $this->assertCount(1, $second->viewData('activities')->items());
+
+        // The bar is drawn even on a single page, so the layout does not jump.
+        $this->get(route('activities.explore', ['q' => 'Gili Trawangan']))
+            ->assertOk()
+            ->assertSee('aria-label="Pagination"', false);
+    }
 }

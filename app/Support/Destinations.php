@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 class Destinations
 {
     /**
-     * @return Collection<string, array{name: string, tagline: string, description: string, terms: list<string>}>
+     * @return Collection<string, array{name: string, tagline: string, description: string, image: string, terms: list<string>}>
      */
     public static function all(): Collection
     {
@@ -23,24 +23,28 @@ class Destinations
                 'tagline' => 'Cliffs, mantas & Kelingking Beach',
                 'description' => 'Dramatic limestone cliffs, crystal bays and the famous T-Rex shaped Kelingking Beach — the wild sister island of Bali.',
                 'terms' => ['Nusa Penida', 'Penida', 'Manta Bay', 'Kelingking', 'Crystal Bay'],
+                'image' => 'destinations/Nusa-Penida.png',
             ],
             'nusa-lembongan' => [
                 'name' => 'Nusa Lembongan',
                 'tagline' => 'Mangroves, reefs & sunset bars',
                 'description' => 'A laid-back island of mangrove forests, clear reefs and the Devil\'s Tear coastline, just a short hop from Penida.',
                 'terms' => ['Nusa Lembongan', 'Lembongan', 'Ceningan', 'Devil\'s Tear', 'Jungut Batu'],
+                'image' => 'destinations/Nusa-Lembongan.png',
             ],
             'gili-trawangan' => [
                 'name' => 'Gili Trawangan',
                 'tagline' => 'Turtles, bikes & beach nights',
                 'description' => 'Car-free streets, sea turtles off the shore and sunsets over Bali\'s Mount Agung.',
                 'terms' => ['Gili Trawangan', 'Gili T', 'Trawangan', 'Gili Air', 'Gili Meno', 'Gili'],
+                'image' => 'destinations/Gili-Trawangan.png',
             ],
             'bali' => [
                 'name' => 'Bali',
                 'tagline' => 'Temples, dances & rice terraces',
                 'description' => 'Cultural shows, mountain villages and beach clubs across the Island of the Gods.',
                 'terms' => ['Bali', 'Badung', 'Gianyar', 'Bangli', 'Tabanan', 'Buleleng', 'Denpasar', 'Karangasem', 'Klungkung', 'Jembrana', 'Ubud', 'Uluwatu', 'Kuta', 'Seminyak', 'Canggu', 'Sanur', 'Bedugul', 'Penglipuran', 'Batubulan'],
+                'image' => 'destinations/bali.png',
             ],
         ]);
     }
@@ -48,7 +52,7 @@ class Destinations
     /**
      * Find the destination a free-text search refers to, by slug or name.
      *
-     * @return array{slug: string, name: string, tagline: string, description: string, terms: list<string>}|null
+     * @return array{slug: string, name: string, tagline: string, description: string, image: string, terms: list<string>}|null
      */
     public static function find(?string $search): ?array
     {
