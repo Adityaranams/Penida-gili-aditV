@@ -33,7 +33,7 @@
         </div>
 
         <div class="flex flex-col gap-[32px] px-[20px]">
-            @foreach ($hotels->take(3) as $index => $hotel)
+            @foreach ($hotels as $index => $hotel)
                 @include('components.hotel-card-mobile', [
                     'delay'       => $index * 90,
                     'name'        => $hotel['name'],

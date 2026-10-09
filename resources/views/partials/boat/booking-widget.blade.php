@@ -28,8 +28,8 @@
                     </div>
 
                     {{-- Fare and unit read as one phrase; the button holds the right edge. --}}
-                    <div class="mt-[22px] flex items-center justify-between gap-[12px]">
-                        <p class="flex min-w-0 items-baseline gap-[4px]">
+                    <div class="mt-[22px] flex flex-wrap items-center justify-between gap-x-[12px] gap-y-[10px]">
+                        <p class="flex items-baseline gap-[4px]">
                             <span class="whitespace-nowrap text-[21px] font-semibold leading-[30px] text-brand">{{ $route['price'] }}</span>
                             <span class="text-[16px] leading-[24px] text-editorial-meta">/pax</span>
                         </p>

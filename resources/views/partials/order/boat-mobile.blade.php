@@ -6,17 +6,17 @@
         @include('partials.order.hidden-fields', ['order' => $order])
 
     {{-- Hero / summary image (1:4573) --}}
-    <header class="relative h-[192px] w-full overflow-hidden bg-[#ebeef0]">
-        <img src="{{ asset('images/boats/hero-order.png') }}" alt="" class="absolute inset-0 size-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.6)] to-transparent"></div>
+    <header class="relative h-[220px] w-full overflow-hidden bg-[#ebeef0]">
+        <img src="{{ $order['image'] }}" alt="{{ $order['operator'] }}" class="absolute inset-0 size-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.75)] via-[rgba(0,0,0,0.25)] to-transparent"></div>
 
-        <div class="absolute inset-x-[16px] bottom-[16px]">
+        <div class="absolute inset-x-[20px] bottom-[18px]">
             <h1 data-reveal class="text-[24px] font-semibold leading-[32px] text-white">{{ $order['operator'] }}</h1>
-            <p data-reveal style="--reveal-delay: 90ms" class="text-[16px] leading-[24px] text-white/90">Premium Transfer Service</p>
+            <p data-reveal style="--reveal-delay: 90ms" class="text-[16px] leading-[24px] text-white/90">{{ $order['service'] }}</p>
         </div>
     </header>
 
-    <div class="flex flex-col gap-[32px] px-[20px] py-[32px]">
+    <div class="flex flex-col gap-[32px] px-[20px] pb-[188px] pt-[32px]">
         {{-- Route Details (1:4582) --}}
         <section data-reveal class="flex flex-col gap-[16px] rounded-[12px] bg-white/95 p-[24px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.05)] backdrop-blur-[5px]">
             <div class="flex items-start justify-between border-b border-[#c0c7d3] pb-[17px]">
@@ -51,24 +51,28 @@
             <div class="flex flex-col gap-[16px]">
                 @foreach ($order['party'] as $group)
                     <div class="flex items-center justify-between">
-                        <label for="m-{{ $group['name'] }}">
+                        <label for="m-{{ $group['name'] }}" class="min-w-0 pr-[8px]">
                             <span class="block text-[14px] font-bold leading-[20px] tracking-[0.7px] text-[#181c1e]">{{ $group['label'] }}</span>
-                            <span class="block text-[12px] leading-[18px] text-[#414751]">{{ $group['hint'] ?? $group['price'] }}</span>
+                            @isset($group['hint'])
+                                <span class="block text-[12px] leading-[18px] text-[#414751]">{{ $group['hint'] }}</span>
+                            @endisset
+                            <span class="block text-[12px] font-semibold leading-[18px] text-brand"
+                                  @if ($group['name'] === 'adults') data-quote-adult-hint @endif>{{ $group['price'] }}</span>
                         </label>
 
                         <div class="flex items-center rounded-[8px] bg-[#f1f4f6] p-[4px]" data-stepper>
                             <button type="button" data-step="-1" aria-label="Decrease {{ $group['label'] }}"
-                                    class="flex size-[32px] items-center justify-center rounded-[4px] bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+                                    class="flex size-[44px] items-center justify-center rounded-[8px] bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform active:scale-95">
                                 <img src="{{ asset('images/icons/mobile/order/minus.svg') }}" alt="" class="h-[2px] w-[14px]">
                             </button>
 
                             <input id="m-{{ $group['name'] }}" name="{{ $group['name'] }}" type="number" inputmode="numeric"
                                    value="{{ old($group['name'], $group['value']) }}" min="{{ $group['min'] }}"
-                                   class="w-[40px] bg-transparent text-center text-[14px] font-bold leading-[20px] tracking-[0.7px] text-[#181c1e] focus:outline-none
+                                   class="w-[44px] bg-transparent text-center text-[16px] font-bold leading-[20px] tracking-[0.7px] text-[#181c1e] focus:outline-none
                                           [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
 
                             <button type="button" data-step="1" aria-label="Increase {{ $group['label'] }}"
-                                    class="flex size-[32px] items-center justify-center rounded-[4px] bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+                                    class="flex size-[44px] items-center justify-center rounded-[8px] bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform active:scale-95">
                                 <img src="{{ asset('images/icons/mobile/order/plus.svg') }}" alt="" class="size-[14px]">
                             </button>
                         </div>
@@ -133,20 +137,46 @@
         </fieldset>
     </div>
 
-    {{-- Bottom action bar (1:4677) --}}
-    <div class="flex flex-col gap-[16px] border-t border-[#e5e7eb] bg-white px-[24px] pb-[24px] pt-[25px] drop-shadow-[0px_-4px_10px_rgba(0,0,0,0.05)]">
+        {{-- Price breakdown, as on the desktop summary card --}}
+        <section data-reveal style="--reveal-delay: 240ms" class="flex flex-col gap-[12px] rounded-[12px] bg-white/95 p-[24px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.05)] backdrop-blur-[5px]">
+            <h2 class="text-[18px] font-bold leading-[28px] text-[#181c1e]">Price Details</h2>
+
+            <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-[16px] gap-y-[6px]">
+                @foreach ($order['lines'] as $line)
+                    <span data-quote-row="{{ $line['kind'] }}-label" class="text-[15px] leading-[24px] text-[#414751]"
+                          @if ($line['hidden'] ?? false) hidden @endif>{{ $line['label'] }}</span>
+                    <span data-quote-row="{{ $line['kind'] }}-amount" class="whitespace-nowrap text-[15px] leading-[24px] text-[#181c1e]"
+                          @if ($line['hidden'] ?? false) hidden @endif>{{ $line['amount'] }}</span>
+                @endforeach
+
+                <span class="col-span-2 mt-[6px] border-t border-[#e0e3e5]" aria-hidden="true"></span>
+                <span class="self-center text-[16px] font-semibold leading-[24px] text-brand">Total</span>
+                <span data-quote-total class="whitespace-nowrap text-[20px] font-bold leading-[28px] text-brand">{{ $order['total'] }}</span>
+            </div>
+
+            <a href="{{ $order['emailHref'] }}" target="_blank" rel="noopener" data-email-book
+               class="mt-[4px] flex min-h-[48px] w-full items-center justify-center gap-[10px] rounded-[12px] border border-[#c0c7d3] bg-[#f7fafc] text-[15px] font-semibold text-[#181c1e] transition-colors active:bg-[#ebeef0]">
+                <img src="{{ asset('images/icons/order/cart-outline.svg') }}" alt="" class="h-[16px] w-[18px]">
+                Book With Email
+            </a>
+        </section>
+    </div>
+
+    {{-- Bottom action bar (1:4677). Pinned to the bottom of the screen so the
+         total and the booking button stay reachable down the whole form. --}}
+    <div class="fixed inset-x-0 bottom-[var(--tabbar-h,64px)] z-30 flex flex-col gap-[12px] border-t border-[#e5e7eb] bg-white/95 px-[20px] pb-[16px] pt-[14px] backdrop-blur-[8px] shadow-[0px_-4px_16px_rgba(0,0,0,0.08)] transition-[bottom] duration-300 ease-smooth lg:hidden">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#414751]">Total Price</p>
-                <p data-quote-total class="text-[24px] font-bold leading-[32px] text-brand">{{ $order['total'] }}</p>
+                <p class="text-[13px] font-semibold leading-[18px] tracking-[0.7px] text-[#414751]">Total Price</p>
+                <p data-quote-total class="text-[22px] font-bold leading-[30px] text-brand">{{ $order['total'] }}</p>
             </div>
-            <a href="{{ route('boats.index') }}" class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#6b7588] underline">Change Selection</a>
+            <a href="{{ route('boats.index') }}" class="min-h-[44px] content-center text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#6b7588] underline">Change Selection</a>
         </div>
 
         <button type="submit"
-                class="w-full rounded-[12px] bg-brand py-[16px] text-center text-[14px] font-bold leading-[20px] tracking-[0.7px] text-white shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]
+                class="min-h-[52px] w-full rounded-[12px] bg-brand text-center text-[16px] font-bold leading-[24px] tracking-[0.5px] text-white shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]
                        transition-transform duration-300 ease-smooth active:scale-[0.98]">
-            Book Now
+            <span data-quote-total="button">Book Now &ndash; {{ $order['total'] }}</span>
         </button>
     </div>
 </form>

@@ -1,13 +1,11 @@
 {{-- Figma node 1:3606 — "hotel order full" (mobile, 390px). Rendered below lg only; the desktop layout is hidden there. --}}
 @props(['order'])
 
-@php [$adults] = $order['party']; @endphp
-
 <form action="{{ $order['action'] }}" method="post" data-quote="{{ json_encode($order['quote']) }}" data-confirm="booking" data-email="{{ config('penida.booking.email') }}" data-confirm-product="{{ $order['property'] }}" class="bg-[#f7fafc] lg:hidden">
     @csrf
         @include('partials.order.hidden-fields', ['order' => $order])
 
-    <div class="flex flex-col gap-[32px] px-[20px] pb-[32px] pt-[16px]">
+    <div class="flex flex-col gap-[32px] px-[20px] pb-[176px] pt-[16px]">
         {{-- Image (1:3650) --}}
         <figure data-reveal class="h-[192px] w-full overflow-hidden rounded-[12px] shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]">
             <img src="{{ asset('images/hotels/detail/'.$order['thumb']) }}" alt="{{ $order['property'] }}" class="size-full object-cover">
@@ -85,44 +83,72 @@
                 </div>
             </fieldset>
 
-            {{-- Number of People (1:3711) --}}
-            <div data-reveal style="--reveal-delay: 90ms" class="flex items-center justify-between gap-[12px] rounded-[12px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_4px_10px_rgba(0,0,0,0.05)]">
-                <label for="m-{{ $adults['name'] }}">
-                    <span class="block text-[16px] leading-[24px] text-brand">Number of People</span>
-                    <span class="block text-[12px] leading-[18px] text-[#414751]" data-quote-adult-hint>{{ $adults['price'] }}</span>
-                </label>
+            {{-- Party (1:3711). Every group the quote defines — adults, children and
+                 rooms — not just the adults, so the phone matches the desktop form. --}}
+            <fieldset data-reveal style="--reveal-delay: 90ms" class="flex flex-col gap-[14px] rounded-[12px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_4px_10px_rgba(0,0,0,0.05)]">
+                <legend class="sr-only">Guests and rooms</legend>
 
-                <div class="flex items-center gap-[16px] rounded-full bg-[#ebeef0] px-[8px] py-[4px]" data-stepper>
-                    <button type="button" data-step="-1" aria-label="Decrease adults"
-                            class="flex size-[32px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                        <img src="{{ asset('images/icons/mobile/order/minus.svg') }}" alt="" class="h-[2px] w-[11.7px]">
-                    </button>
+                @foreach ($order['party'] as $group)
+                    <div class="flex items-center justify-between gap-[12px]">
+                        <label for="m-{{ $group['name'] }}" class="min-w-0 pr-[8px]">
+                            <span class="block text-[16px] leading-[24px] text-[#181c1e]">{{ $group['label'] }}</span>
+                            @isset($group['hint'])
+                                <span class="block text-[12px] leading-[18px] text-[#414751]">{{ $group['hint'] }}</span>
+                            @endisset
+                            <span class="block text-[12px] font-semibold leading-[18px] text-brand"
+                                  @if ($group['name'] === 'adults') data-quote-adult-hint @endif>{{ $group['price'] }}</span>
+                        </label>
 
-                    <input id="m-{{ $adults['name'] }}" name="{{ $adults['name'] }}" type="number" inputmode="numeric"
-                           value="{{ $adults['value'] }}" min="{{ $adults['min'] }}"
-                           class="w-[24px] bg-transparent text-center text-[16px] leading-[24px] text-[#181c1e] focus:outline-none
-                                  [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                        <div class="flex items-center gap-[10px] rounded-full bg-[#ebeef0] px-[6px] py-[4px]" data-stepper>
+                            <button type="button" data-step="-1" aria-label="Decrease {{ $group['label'] }}"
+                                    class="flex size-[44px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform active:scale-95">
+                                <img src="{{ asset('images/icons/mobile/order/minus.svg') }}" alt="" class="h-[2px] w-[11.7px]">
+                            </button>
 
-                    <button type="button" data-step="1" aria-label="Increase adults"
-                            class="flex size-[32px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                        <img src="{{ asset('images/icons/mobile/order/plus.svg') }}" alt="" class="size-[11.7px]">
-                    </button>
+                            <input id="m-{{ $group['name'] }}" name="{{ $group['name'] }}" type="number" inputmode="numeric"
+                                   value="{{ old($group['name'], $group['value']) }}" min="{{ $group['min'] }}"
+                                   class="w-[32px] bg-transparent text-center text-[16px] font-semibold leading-[24px] text-[#181c1e] focus:outline-none
+                                          [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+
+                            <button type="button" data-step="1" aria-label="Increase {{ $group['label'] }}"
+                                    class="flex size-[44px] items-center justify-center rounded-full bg-white drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform active:scale-95">
+                                <img src="{{ asset('images/icons/mobile/order/plus.svg') }}" alt="" class="size-[11.7px]">
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+            </fieldset>
+
+            {{-- Price breakdown, as on the desktop summary card --}}
+            <section data-reveal style="--reveal-delay: 180ms" class="flex flex-col gap-[10px] rounded-[12px] border border-[rgba(192,199,211,0.3)] bg-white p-[17px] drop-shadow-[0px_4px_10px_rgba(0,0,0,0.05)]">
+                <h2 class="text-[16px] font-bold leading-[24px] text-[#181c1e]">Price Details</h2>
+
+                <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-[16px] gap-y-[6px]">
+                    @foreach ($order['lines'] as $line)
+                        <span data-quote-row="{{ $line['kind'] }}-label" class="text-[15px] leading-[24px] text-[#414751]"
+                              @if ($line['hidden'] ?? false) hidden @endif>{{ $line['label'] }}</span>
+                        <span data-quote-row="{{ $line['kind'] }}-amount" class="whitespace-nowrap text-[15px] leading-[24px] text-[#181c1e]"
+                              @if ($line['hidden'] ?? false) hidden @endif>{{ $line['amount'] }}</span>
+                    @endforeach
+
+                    <span class="col-span-2 mt-[6px] border-t border-[#e0e3e5]" aria-hidden="true"></span>
+                    <span class="self-center text-[16px] font-semibold leading-[24px] text-brand">Total</span>
+                    <span data-quote-total class="whitespace-nowrap text-[20px] font-bold leading-[28px] text-brand">{{ $order['total'] }}</span>
                 </div>
-            </div>
-
+            </section>
         </section>
     </div>
 
     {{-- Bottom action bar (1:3726) --}}
-    <div class="flex flex-col gap-[8px] border-t border-[rgba(192,199,211,0.5)] bg-white px-[20px] pb-[20px] pt-[21px] drop-shadow-[0px_-4px_10px_rgba(0,0,0,0.05)]">
+    <div class="fixed inset-x-0 bottom-[var(--tabbar-h,64px)] z-30 flex flex-col gap-[10px] border-t border-[rgba(192,199,211,0.5)] bg-white/95 px-[20px] pb-[16px] pt-[14px] backdrop-blur-[8px] shadow-[0px_-4px_16px_rgba(0,0,0,0.08)] transition-[bottom] duration-300 ease-smooth lg:hidden">
         <div class="flex items-center justify-between">
             <span class="text-[16px] leading-[24px] text-[#414751]">Total Price</span>
             <span data-quote-total class="text-[20px] font-bold leading-[30px] text-brand">{{ $order['total'] }}</span>
         </div>
 
         <button type="submit"
-                class="w-full rounded-[12px] bg-brand py-[16px] text-center text-[16px] leading-[24px] text-white transition-transform duration-300 ease-smooth active:scale-[0.98]">
-            Proceed to Payment
+                class="min-h-[52px] w-full rounded-[12px] bg-brand text-center text-[16px] font-bold leading-[24px] text-white transition-transform duration-300 ease-smooth active:scale-[0.98]">
+            <span data-quote-total="button">Proceed to Payment &ndash; {{ $order['total'] }}</span>
         </button>
     </div>
 </form>

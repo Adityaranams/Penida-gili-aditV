@@ -28,7 +28,7 @@
     {{-- Mobile (< lg): Figma 1:3857 — Activities Grid --}}
     <section class="bg-[#f7fafc] px-[20px] pb-[120px] pt-[48px] lg:hidden">
         <div class="flex flex-col gap-[32px]">
-            @foreach ($activities->take(3) as $index => $activity)
+            @foreach ($activities as $index => $activity)
                 @include('components.place-card-mobile', [
                     'delay'       => $index * 90,
                     'name'        => $activity['name'],

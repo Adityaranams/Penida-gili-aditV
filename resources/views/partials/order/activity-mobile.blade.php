@@ -7,12 +7,15 @@
 
     {{-- Hero (1:4318) --}}
     <header class="relative flex h-[250px] items-center justify-center overflow-hidden">
-        <img src="{{ asset('images/boats/hero-order.png') }}" alt="" class="absolute inset-0 size-full object-cover">
-        <div class="absolute inset-0 bg-[rgba(24,28,30,0.4)]"></div>
-        <h1 data-reveal class="relative px-[20px] pb-[8px] text-center text-[28px] font-bold leading-[36px] text-white">Order Summary</h1>
+        <img src="{{ $order['image'] }}" alt="{{ $order['title'] }}" class="absolute inset-0 size-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.75)] via-[rgba(0,0,0,0.3)] to-[rgba(0,0,0,0.15)]"></div>
+        <div class="absolute inset-x-[20px] bottom-[18px]">
+            <h1 data-reveal class="text-[24px] font-semibold leading-[32px] text-white">{{ $order['title'] }}</h1>
+            <p data-reveal style="--reveal-delay: 90ms" class="text-[16px] leading-[24px] text-white/90">Order Summary</p>
+        </div>
     </header>
 
-    <div class="flex flex-col gap-[32px] px-[20px] py-[32px]">
+    <div class="flex flex-col gap-[32px] px-[20px] pb-[160px] pt-[32px]">
         <div data-reveal>
             <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Complete Your Booking</h2>
             <p class="mt-[8px] text-[16px] leading-[24px] text-[#414751]">Almost there! Please review your details and confirm.</p>
@@ -51,14 +54,14 @@
     </div>
 
     {{-- Bottom action bar (1:4447) --}}
-    <div class="flex items-center justify-between gap-[16px] border-t border-[rgba(192,199,211,0.2)] bg-white px-[16px] pb-[16px] pt-[17px] drop-shadow-[0px_4px_10px_rgba(0,0,0,0.05)]">
+    <div class="fixed inset-x-0 bottom-[var(--tabbar-h,64px)] z-30 flex items-center justify-between gap-[16px] border-t border-[rgba(192,199,211,0.2)] bg-white/95 px-[20px] pb-[16px] pt-[14px] backdrop-blur-[8px] shadow-[0px_-4px_16px_rgba(0,0,0,0.08)] transition-[bottom] duration-300 ease-smooth lg:hidden">
         <div>
             <p class="text-[12px] leading-[16px] text-[#414751]">Total</p>
             <p data-quote-total class="text-[20px] font-bold leading-[28px] text-brand">{{ $order['total'] }}</p>
         </div>
 
         <button type="submit"
-                class="flex max-w-[200px] flex-1 items-center justify-center gap-[8px] rounded-[12px] bg-brand px-[24px] py-[12px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-white shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]
+                class="flex min-h-[52px] max-w-[200px] flex-1 items-center justify-center gap-[8px] rounded-[12px] bg-brand px-[24px] text-[15px] font-bold leading-[20px] tracking-[0.5px] text-white shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]
                        transition-transform duration-300 ease-smooth active:scale-[0.98]">
             Book Now
             <img src="{{ asset('images/icons/mobile/order/check-circle.svg') }}" alt="" class="size-[15px]">

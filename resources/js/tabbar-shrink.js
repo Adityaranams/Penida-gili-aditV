@@ -25,7 +25,18 @@ if (bar) {
 
         last = y;
         bar.toggleAttribute('data-shrunk', y > TOP_ZONE && moved > 0);
+        publishHeight();
     };
+
+    // Checkout pins its action bar directly above this one, so the offset has to
+    // follow the shrink rather than assume the tall state.
+    const publishHeight = () => {
+        document.documentElement.style.setProperty('--tabbar-h', `${Math.round(bar.getBoundingClientRect().height)}px`);
+    };
+
+    publishHeight();
+    window.addEventListener('resize', publishHeight, { passive: true });
+    bar.addEventListener('transitionend', publishHeight);
 
     window.addEventListener('scroll', update, { passive: true });
 

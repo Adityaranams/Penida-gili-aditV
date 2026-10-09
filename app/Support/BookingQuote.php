@@ -256,8 +256,14 @@ final class BookingQuote
             'schedule_id' => $schedule->id,
             'slug' => $schedule->operator->slug,
             'tripType' => 'One Way',
-            'operator' => $schedule->operator->name,
-            'service' => 'Standard Fast Boat Service',
+            // The guest picked a boat, not a company: name the vessel they chose,
+            // falling back to the operator only when no boat is assigned yet.
+            'operator' => $schedule->vessel?->name ?? $schedule->operator->name,
+            'service' => $schedule->vessel
+                ? $schedule->vessel->type.' · '.$schedule->vessel->capacity.' seats'
+                : 'Standard Fast Boat Service',
+            // The phone layout opens on this photo, so it shows the boat itself.
+            'image' => $schedule->vessel?->image_url ?? asset('images/boats/hero-order.png'),
             'date' => $this->date->format('D, d M Y'),
             'departure' => Carbon::parse($schedule->departure_time)->format('H:i'),
             'arrival' => Carbon::parse($schedule->arrival_time)->format('H:i'),
@@ -297,6 +303,9 @@ final class BookingQuote
         return [
             'slug' => $activity->slug,
             'summaryTitle' => 'Activity Booking Summary',
+            // The phone layout opens on this photo, so it shows the activity itself.
+            'image' => $activity->image_url,
+            'title' => $activity->name,
             'rows' => [
                 ['label' => 'Activity', 'value' => $activity->name],
                 ['label' => 'Date', 'value' => $this->date->format('d M Y')],

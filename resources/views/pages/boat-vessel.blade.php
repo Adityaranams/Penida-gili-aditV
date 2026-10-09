@@ -175,8 +175,8 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-[18px] flex items-center justify-between gap-[12px]">
-                                    <p class="flex min-w-0 items-baseline gap-[4px]">
+                                <div class="mt-[18px] flex flex-wrap items-center justify-between gap-x-[12px] gap-y-[10px]">
+                                    <p class="flex items-baseline gap-[4px]">
                                         <span class="whitespace-nowrap text-[20px] font-semibold leading-[28px] text-brand">{{ $schedule->price_label }}</span>
                                         <span class="text-[15px] leading-[22px] text-editorial-meta">/pax</span>
                                     </p>

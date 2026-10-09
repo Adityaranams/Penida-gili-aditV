@@ -27,7 +27,7 @@
     {{-- Mobile (< lg): Figma 1:5095 — Operator Cards List --}}
     <section class="px-[20px] py-[32px] lg:hidden">
         <div class="flex flex-col gap-[32px]">
-            @foreach ($boats->take(3) as $index => $boat)
+            @foreach ($boats as $index => $boat)
                 @include('components.boat-card-mobile', [
                     'delay'       => $index * 90,
                     'name'        => $boat['name'],

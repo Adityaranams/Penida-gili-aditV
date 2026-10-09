@@ -208,6 +208,11 @@
                 margin 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
+:root {
+    /* Read by anything pinned above the tab bar; tabbar-shrink.js keeps it current. */
+    --tabbar-h: 64px;
+}
+
 .tabbar__row {
     height: 64px;
 }
