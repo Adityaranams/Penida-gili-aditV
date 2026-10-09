@@ -191,6 +191,22 @@
                         @endforeach
                     </ul>
                 @endif
+
+                {{-- Charter enquiry (Figma 1:1425). Sailings cover the published routes;
+                     anything else goes straight to the operator on WhatsApp, with the
+                     boat already named so they do not have to retype it. --}}
+                <div class="mt-[28px] flex flex-col gap-[16px] border-t border-editorial-rule pt-[24px]">
+                    <p class="text-center text-[15px] leading-[24px] text-editorial-body">
+                        Need a custom route or private charter?
+                    </p>
+
+                    <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about a custom route or private charter with '.$vessel->name.'.') }}"
+                       target="_blank" rel="noopener"
+                       class="flex min-h-[48px] items-center justify-center rounded-[8px] bg-[#d5e2e9] px-[21px] text-[16px] font-bold leading-[24px] tracking-[0.5px] text-[#41505a]
+                              transition-colors duration-300 hover:bg-[#c3d6e0]">
+                        Contact Operator
+                    </a>
+                </div>
             </div>
         </aside>
     </div>

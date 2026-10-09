@@ -11,11 +11,11 @@
     ];
 @endphp
 
-<div class="bg-[#f7fafc] lg:hidden">
+<div class="bg-[#f7fafc] lg:hidden" data-room-picker data-nights="{{ $hotel['default_nights'] }}">
     {{-- Hero (1:3442) --}}
     <header class="relative h-[320px] w-full overflow-hidden">
-        <img src="{{ $hotel['gallery_photos'][0]['url'] }}" alt="{{ $hotel['gallery_photos'][0]['alt'] }}" class="absolute inset-0 size-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        <x-photo-swiper :photos="$hotel['gallery_photos']" :counter="false" />
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
         <div class="absolute inset-x-[20px] bottom-[16px] flex items-end justify-between gap-[12px]">
             <div data-reveal>
@@ -59,16 +59,9 @@
 
             <div class="flex flex-col gap-[16px]">
                 @foreach ($hotel['rooms'] as $index => $room)
-                    @php $selected = $loop->last; @endphp
-                    <article data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
-                             @class([
-                                 'relative flex flex-col gap-[12px] overflow-hidden rounded-[12px] border bg-white p-[17px]',
-                                 'border-brand shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]' => $selected,
-                                 'border-[#c0c7d3] drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)]' => ! $selected,
-                             ])>
-                        @if ($selected)
-                            <span class="absolute right-0 top-0 rounded-bl-[8px] bg-brand px-[8px] py-[4px] text-[10px] font-bold uppercase leading-[15px] tracking-[0.5px] text-white">Popular</span>
-                        @endif
+                    <article data-room-card data-reveal style="--reveal-delay: {{ $index * 90 }}ms"
+                             class="relative flex flex-col gap-[12px] overflow-hidden rounded-[12px] border border-[#c0c7d3] bg-white p-[17px]
+                                    drop-shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors duration-300">
 
                         <div class="flex items-start justify-between gap-[12px]">
                             <div>
@@ -81,14 +74,18 @@
                             </p>
                         </div>
 
-                        <a href="{{ route('hotels.order', [$hotel['slug'], 'room' => $room['id']]) }}"
-                           @class([
-                               'flex items-center justify-center rounded-[8px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] transition-colors duration-300',
-                               'bg-brand py-[8px] text-white' => $selected,
-                               'border border-[#2178c3] bg-[rgba(33,120,195,0.1)] py-[9px] text-brand active:bg-[rgba(33,120,195,0.2)]' => ! $selected,
-                           ])>
-                            {{ $selected ? 'Selected' : 'Select Room' }}
-                        </a>
+                        {{-- Picking a room stays on the page: the button turns solid, the
+                             bar at the foot shows that room's total, and Book Now carries
+                             it to the order screen. resources/js/room-picker.js. --}}
+                        <button type="button" data-room-pick
+                                data-room-id="{{ $room['id'] }}"
+                                data-room-nightly="{{ $room['price_per_night'] }}"
+                                class="flex min-h-[44px] items-center justify-center rounded-[8px] border border-[#2178c3] bg-white
+                                       text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-brand
+                                       transition-colors duration-300
+                                       hover:bg-brand hover:text-white active:bg-brand active:text-white">
+                            <span data-room-pick-label>Select Room</span>
+                        </button>
                     </article>
                 @endforeach
             </div>
@@ -107,16 +104,29 @@
 
             <p class="text-center text-[14px] leading-[21px] text-[#414751]">{{ $hotel['full_address'] }}</p>
         </section>
+
+        <div class="h-[96px]" aria-hidden="true"></div>
     </div>
 
-    {{-- Prominent booking action (1:3527) --}}
-    <div class="flex h-[80px] items-center justify-between border-t border-[#c0c7d3] bg-white px-[20px] drop-shadow-[0px_-4px_10px_rgba(0,0,0,0.05)]">
-        <div>
-            <p class="text-[12px] leading-[18px] text-[#414751]">Total for {{ $hotel['default_nights'] }} nights</p>
-            <p class="text-[22px] font-bold leading-[33px] text-brand">{{ $hotel['default_total_label'] }}</p>
+    {{-- Prominent booking action (1:3527). Pinned above the tab bar so the price
+         and the button stay in reach the whole way down the page, instead of
+         waiting at the very bottom. --}}
+    <div class="fixed inset-x-0 bottom-[var(--tabbar-h,78px)] z-30 flex items-center justify-between gap-[12px]
+                border-t border-[rgba(192,199,211,0.5)] bg-white/95 px-[20px] py-[12px]
+                backdrop-blur-[8px] shadow-[0px_-4px_16px_rgba(0,0,0,0.08)]
+                transition-[bottom] duration-300 ease-smooth lg:hidden">
+        <div class="min-w-0">
+            <p data-room-total-caption class="text-[12px] leading-[18px] text-[#414751]">Pick a room to see the total</p>
+            <p data-room-total class="truncate text-[22px] font-bold leading-[33px] text-brand" hidden></p>
         </div>
-        <a href="{{ route('hotels.order', $hotel['slug']) }}"
-           class="rounded-[12px] bg-brand px-[32px] py-[12px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-white shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-smooth active:scale-[0.98]">
+
+        {{-- Inert until a room is picked, so Book Now can never reach the order
+             screen without one. --}}
+        <a data-room-book
+           href="{{ route('hotels.order', $hotel['slug']) }}"
+           data-room-book-base="{{ route('hotels.order', $hotel['slug']) }}"
+           aria-disabled="true"
+           class="pointer-events-none flex min-h-[48px] shrink-0 items-center justify-center rounded-[12px] bg-brand px-[32px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-white opacity-45 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] transition-[opacity,transform] duration-300 ease-smooth active:scale-[0.98]">
             Book Now
         </a>
     </div>

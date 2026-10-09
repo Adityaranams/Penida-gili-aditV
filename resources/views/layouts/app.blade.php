@@ -22,6 +22,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+    @include('partials.nav-sticky', ['active' => trim($__env->yieldContent('nav-active')) ?: null])
+
     @include('partials.mobile-header')
 
     @yield('hero')
@@ -31,6 +33,11 @@
     </main>
 
     @include('partials.footer')
+
+    @hasSection('hide-whatsapp')
+    @else
+        @include('partials.whatsapp-float')
+    @endif
 
     @include('partials.mobile-tabbar')
 

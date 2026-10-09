@@ -46,5 +46,7 @@
             </main>
         </div>
     </div>
+
+    @include('partials.admin.delete-modal')
 </body>
 </html>

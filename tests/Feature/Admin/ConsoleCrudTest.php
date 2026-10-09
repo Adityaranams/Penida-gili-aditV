@@ -18,6 +18,7 @@ use App\Models\Schedule;
 use App\Models\User;
 use App\Models\Vessel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -83,6 +84,11 @@ class ConsoleCrudTest extends TestCase
 
     public function test_schedule_created_in_the_console_reaches_the_listing_and_the_dashboard_fleet(): void
     {
+        // The fleet card reads "Departure: …" only while the boat is docked; mid
+        // sailing it switches to an ETA. Without a fixed clock this test passed
+        // or failed depending on the hour it happened to run.
+        $this->travelTo(Carbon::parse('2026-10-09 12:00:00'));
+
         $operator = BoatOperator::factory()->create();
         $vessel = Vessel::factory()->for($operator, 'operator')->create(['name' => 'Sanjaya Explorer', 'status' => ListingStatus::Active]);
         $from = Port::factory()->create(['name' => 'Sanur Beach Port']);

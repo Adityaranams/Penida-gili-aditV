@@ -15,11 +15,6 @@
             </p>
 
             <div class="mt-[29px] lg:mt-[70px] flex flex-wrap gap-[24px]">
-                <a href="#"
-                   class="flex h-[58px] w-[212px] items-center justify-center rounded-field bg-brand text-[16px] font-medium leading-[30px] text-on-brand backdrop-blur-[4.7px]
-                          transition-[transform,box-shadow] duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand/30">
-                    Learn More
-                </a>
                 <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
                    class="flex h-[58px] w-[182px] items-center justify-center rounded-field border border-black/33 text-[16px] leading-[30px] text-ink
                           transition-[transform,background-color,border-color] duration-300 ease-smooth hover:-translate-y-0.5 hover:border-ink hover:bg-black/5">

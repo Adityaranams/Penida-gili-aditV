@@ -29,6 +29,13 @@ if (form) {
             all.checked = ticked.length > 0 && ticked.length === items().length;
             all.indeterminate = ticked.length > 0 && ticked.length < items().length;
         }
+
+        // Keep the dialog's wording current. It has to be set before the submit
+        // fires: resources/js/confirm-delete.js reads it in the capture phase,
+        // which runs ahead of this form's own submit handler.
+        const noun = form.dataset.bulkNoun ?? 'rows';
+
+        form.dataset.confirmDelete = `${ticked.length} ${ticked.length === 1 ? noun.replace(/s$/, '') : noun}`;
     };
 
     all?.addEventListener('change', () => {
@@ -40,9 +47,8 @@ if (form) {
 
     form.addEventListener('submit', (event) => {
         const ticked = items().filter((item) => item.checked).length;
-        const noun = form.dataset.bulkNoun ?? 'rows';
 
-        if (ticked === 0 || ! window.confirm(`Delete ${ticked} ${noun}? This cannot be undone.`)) {
+        if (ticked === 0) {
             event.preventDefault();
         }
     });

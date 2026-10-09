@@ -13,24 +13,37 @@
     $current = trim($__env->yieldContent('nav-active')) ?: null;
 @endphp
 
-{{-- Scrolling down shrinks the bar (see resources/js/tabbar-shrink.js); scrolling back up restores it. --}}
-<nav data-tabbar class="tabbar fixed inset-x-0 bottom-0 z-50 border-t border-[#e5e7eb] bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Primary">
-    <ul class="tabbar__row flex items-center justify-around">
+{{-- A floating liquid-glass bar: translucent, blurred and saturated over
+     whatever scrolls beneath, lit along its top edge. The captions stay put at
+     every scroll position; resources/js/tabbar-shrink.js only reports the space
+     it occupies so the things pinned above it can sit clear. --}}
+<nav data-tabbar class="tabbar fixed inset-x-[14px] bottom-[max(14px,env(safe-area-inset-bottom))] z-50 rounded-[26px]
+                        border border-white/60 bg-white/72 backdrop-blur-2xl backdrop-saturate-150
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.75),inset_0_-1px_0_rgba(255,255,255,0.25),0_10px_30px_rgba(15,34,54,0.18)]
+                        lg:hidden" aria-label="Primary">
+    <ul class="tabbar__row flex items-center justify-around px-[6px]">
         @foreach ($tabs as $key => $tab)
             <li>
                 <a href="{{ $tab['route'] }}"
-                   @class(['tabbar__tab flex flex-col items-center gap-[4px]'])
+                   @class([
+                       'tabbar__tab relative flex min-w-[60px] flex-col items-center gap-[4px] rounded-[18px] px-[10px] py-[7px]',
+                       'tabbar__tab--on' => $current === $key,
+                   ])
                    @if ($current === $key) aria-current="page" @endif>
+                    @if ($current === $key)
+                        <span class="tabbar__pill" aria-hidden="true"></span>
+                    @endif
+
                     {{-- The SVGs ship with a hard-coded fill, so paint them via mask so the colour follows the active state. --}}
                     <span aria-hidden="true"
                           style="width: {{ $tab['w'] }}px; height: {{ $tab['h'] }}px; -webkit-mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain; mask: url('{{ asset('images/icons/tabbar/'.$tab['icon']) }}') no-repeat center / contain;"
                           @class([
-                              'tabbar__icon block transition-colors duration-300',
+                              'tabbar__icon relative block transition-colors duration-300',
                               'bg-brand' => $current === $key,
                               'bg-[#64748b]' => $current !== $key,
                           ])></span>
                     <span @class([
-                        'tabbar__label text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px]',
+                        'tabbar__label relative text-[10px] font-semibold uppercase leading-[15px] tracking-[0.5px]',
                         'text-brand' => $current === $key,
                         'text-[#64748b]' => $current !== $key,
                     ])>{{ $tab['label'] }}</span>

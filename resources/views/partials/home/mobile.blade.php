@@ -40,7 +40,6 @@
                 Born out of a deep love for Indonesia's breathtaking archipelagos, we started this platform with a simple realization: exploring tropical islands should be as relaxing as the vacation itself.
             </p>
             <div class="mt-[24px] flex gap-[16px]">
-                <a href="#" class="rounded-[8px] bg-[#2563eb] px-[24px] py-[10px] text-[16px] font-medium leading-[24px] text-white">Learn More</a>
                 <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
                    class="rounded-[8px] border border-[#e5e7eb] bg-white px-[24px] py-[10px] text-[16px] font-medium leading-[24px] text-[#0f172a]">Contact Us</a>
             </div>
@@ -68,10 +67,13 @@
                     </span>
                     <div class="min-w-0">
                         <h3 class="text-[16px] font-bold leading-[24px] text-[#0f172a]">Our Core Values</h3>
-                        <ul class="mt-[4px] ps-[13px] text-[14px] leading-[20px] text-[#64748b]">
+                        {{-- No marker is drawn here, so the old 13px indent only pushed the
+                             values out of line with the heading above them. --}}
+                        <ul class="mt-[4px] text-[14px] leading-[20px] text-[#64748b]">
                             <li>Safety Without Compromise</li>
                             <li>Radical Transparency</li>
                             <li>Seamless Innovation</li>
+                            <li>Local Expertise</li>
                         </ul>
                     </div>
                 </article>

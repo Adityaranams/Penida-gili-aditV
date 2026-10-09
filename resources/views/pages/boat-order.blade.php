@@ -5,6 +5,9 @@
 
 @section('nav-active', 'boat')
 
+{{-- The order screens carry their own pinned Book Now bar. --}}
+@section('hide-whatsapp', 'yes')
+
 @section('hero')
     {{-- Mobile (< lg) gets its own hero + form from the mobile Figma frame. --}}
     @include('partials.order.boat-mobile', ['order' => $order])

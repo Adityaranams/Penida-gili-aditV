@@ -11,7 +11,13 @@
     ];
 @endphp
 
-<nav class="container-page hidden items-center justify-between pt-[33px] lg:flex">
+{{-- The same rounded glass pill the sticky bar uses, so scrolling only swaps
+     dark glass for light instead of changing the nav's shape. Over the hero
+     photo the glass stays dark and the type white. --}}
+<div data-hero-nav class="hero-nav container-page hidden pt-[24px] lg:block">
+<nav class="flex items-center justify-between rounded-full border border-white/25 bg-white/10 px-[28px] py-[8px]
+            backdrop-blur-2xl backdrop-saturate-150
+            shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.22)]">
     <a href="/" class="flex items-center gap-2 shrink-0">
         <img src="{{ asset('images/logo/logo-mark-light.svg') }}" alt="" class="h-[61px] w-[123px]">
         <img src="{{ asset('images/logo/logo-word-light.svg') }}" alt="Penida Gili" class="h-[61px] w-[278px]">
@@ -38,3 +44,4 @@
         Contact Us
     </a>
 </nav>
+</div>

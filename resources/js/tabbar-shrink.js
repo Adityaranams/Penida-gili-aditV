@@ -1,45 +1,25 @@
 /**
- * Mobile tab bar: shrink on the way down, grow on the way up.
+ * Publish the space the mobile tab bar occupies.
  *
- * Scrolling down past a short threshold folds the captions away and slims the bar
- * (styles live in resources/css/app.css under `.tabbar`); scrolling up — or coming
- * back near the top — restores it. The state is a single `data-shrunk` attribute,
- * so the CSS owns the animation and this only decides when to flip it.
+ * The bar floats clear of the bottom edge, so anything pinned above it — the
+ * WhatsApp button, the order screens' action bar — needs the distance from the
+ * bar's top to the bottom of the viewport, not just the bar's own height.
+ *
+ * (The bar used to shrink and fold its captions away on scroll down; it now
+ * keeps the same shape at every scroll position, so there is nothing else to do
+ * here.)
  */
 const bar = document.querySelector('[data-tabbar]');
 
 if (bar) {
-    // Ignore the rubber-banding at the very top and tiny finger wobbles.
-    const TOP_ZONE = 24;
-    const WOBBLE = 6;
+    const publish = () => {
+        const rect = bar.getBoundingClientRect();
+        const occupied = rect.height > 0 ? Math.round(window.innerHeight - rect.top) : 0;
 
-    let last = window.scrollY;
-
-    const update = () => {
-        const y = Math.max(0, window.scrollY);
-        const moved = y - last;
-
-        if (Math.abs(moved) < WOBBLE) {
-            return;
-        }
-
-        last = y;
-        bar.toggleAttribute('data-shrunk', y > TOP_ZONE && moved > 0);
-        publishHeight();
+        document.documentElement.style.setProperty('--tabbar-h', `${occupied}px`);
     };
 
-    // Checkout pins its action bar directly above this one, so the offset has to
-    // follow the shrink rather than assume the tall state.
-    const publishHeight = () => {
-        document.documentElement.style.setProperty('--tabbar-h', `${Math.round(bar.getBoundingClientRect().height)}px`);
-    };
-
-    publishHeight();
-    window.addEventListener('resize', publishHeight, { passive: true });
-    bar.addEventListener('transitionend', publishHeight);
-
-    window.addEventListener('scroll', update, { passive: true });
-
-    // A tab that is tapped while the bar is small should be readable again.
-    bar.addEventListener('focusin', () => bar.removeAttribute('data-shrunk'));
+    publish();
+    window.addEventListener('resize', publish, { passive: true });
+    window.addEventListener('load', publish);
 }

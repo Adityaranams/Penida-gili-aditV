@@ -195,52 +195,128 @@
 /* Jumping from the table of contents must clear the sticky header. */
 .rich-text h2, .rich-text h3 { scroll-margin-top: 96px; }
 
-/* Mobile tab bar: scrolling down shrinks it to a slim strip so the page has more
-   room; scrolling back up restores it. resources/js/tabbar-shrink.js sets
-   `data-shrunk` on the <nav>. */
-.tabbar__row,
-.tabbar__icon,
-.tabbar__label,
-.tabbar__tab {
-    transition: height 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
-                transform 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
-                opacity 200ms linear,
-                margin 300ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
-}
-
+/* Mobile tab bar: a floating glass pill. The captions never fold away — the
+   bar keeps the same height at every scroll position — so the only motion here
+   is the highlight settling behind whichever tab the page belongs to. */
 :root {
-    /* Read by anything pinned above the tab bar; tabbar-shrink.js keeps it current. */
-    --tabbar-h: 64px;
+    /* Space the bar occupies at the bottom, published by resources/js/tabbar-shrink.js
+       so anything pinned above it (the WhatsApp button, the order action bars)
+       can clear it. */
+    --tabbar-h: 78px;
 }
 
 .tabbar__row {
-    height: 64px;
+    height: 62px;
 }
 
-.tabbar[data-shrunk] .tabbar__row {
-    height: 44px;
+.tabbar__tab {
+    transition: transform 200ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-.tabbar[data-shrunk] .tabbar__tab {
-    gap: 0;
+.tabbar__tab:active {
+    transform: scale(0.94);
 }
 
-.tabbar[data-shrunk] .tabbar__icon {
-    transform: scale(0.82);
+/* The highlight behind the current tab. It grows into place on arrival, which
+   is what makes moving between tabs read as a transition rather than a jump. */
+.tabbar__pill {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background-color: color-mix(in oklab, var(--color-brand) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-brand) 22%, transparent);
+    animation: tabbar-pill-in 420ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)) both;
 }
 
-/* The captions fold away; the icons alone keep the bar readable while it is small. */
-.tabbar[data-shrunk] .tabbar__label {
-    height: 0;
-    opacity: 0;
-    overflow: hidden;
+@keyframes tabbar-pill-in {
+    from { opacity: 0; transform: scale(0.72); }
+    to   { opacity: 1; transform: none; }
+}
+
+.tabbar__tab--on .tabbar__icon,
+.tabbar__tab--on .tabbar__label {
+    animation: tabbar-tab-in 420ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
+@keyframes tabbar-tab-in {
+    from { transform: translateY(3px); }
+    to   { transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .tabbar__row,
-    .tabbar__icon,
-    .tabbar__label,
-    .tabbar__tab {
+    .tabbar__tab,
+    .tabbar__pill,
+    .tabbar__tab--on .tabbar__icon,
+    .tabbar__tab--on .tabbar__label {
+        animation: none;
         transition: none;
     }
+}
+
+/* Floating WhatsApp button (resources/views/partials/whatsapp-float.blade.php).
+   It drifts in once the page has settled, then sends out a slow ring so the eye
+   catches it without the button itself ever moving under the cursor. */
+.wa-float {
+    animation: wa-float-in 600ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)) 900ms both;
+}
+
+.wa-float__ping {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: #25d366;
+    opacity: 0.55;
+    animation: wa-float-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes wa-float-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.8); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes wa-float-ping {
+    0%        { transform: scale(1);   opacity: 0.55; }
+    70%, 100% { transform: scale(1.8); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wa-float { animation: none; }
+    .wa-float__ping { animation: none; opacity: 0; }
+}
+
+/* Follow-along desktop nav (resources/views/partials/nav-sticky.blade.php).
+   Parked just above the viewport and slid down by resources/js/sticky-nav.js. */
+.sticky-nav {
+    /* Parked a little above its resting place and slightly shrunk, so arriving
+       reads as the glass settling into view rather than a panel sliding down. */
+    transform: translateY(-120%) scale(0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 420ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
+                opacity 260ms linear;
+}
+
+.sticky-nav.is-visible {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sticky-nav { transition: none; }
+}
+
+/* The nav drawn on the hero drifts down into place on first paint, so the page
+   does not open with it already hard against the top edge. */
+.hero-nav {
+    animation: hero-nav-in 520ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
+@keyframes hero-nav-in {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-nav { animation: none; }
 }

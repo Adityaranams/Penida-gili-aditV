@@ -8,14 +8,9 @@
 @endphp
 
 <div class="bg-[#f7fafc] lg:hidden">
-    {{-- Hero gallery (1:4130): first photo full-bleed with a photo-count badge. --}}
+    {{-- Hero gallery (1:4130): swipe through every photo, with the count and dots following. --}}
     <header class="relative h-[400px] w-full overflow-hidden">
-        <img src="{{ $activity['gallery_photos'][0]['url'] }}" alt="{{ $activity['gallery_photos'][0]['alt'] }}" class="absolute inset-0 size-full object-cover">
-
-        <span class="absolute bottom-[58px] right-[24px] flex items-center gap-[4px] rounded-full bg-[rgba(24,28,30,0.6)] px-[12px] py-[4px] backdrop-blur-[2px]">
-            <img src="{{ asset('images/icons/mobile/detail/camera.svg') }}" alt="" class="size-[13.3px]">
-            <span class="text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-white">1/{{ count($activity['gallery_photos']) }}</span>
-        </span>
+        <x-photo-swiper :photos="$activity['gallery_photos']" />
     </header>
 
     {{-- Content pulls up over the hero by 24px, as in Figma. --}}

@@ -1,5 +1,6 @@
 {{-- Edit / delete controls at the end of each console row (Figma 1:6977).
-     Delete is a real form so it works without JavaScript; the confirm() is a courtesy. --}}
+     Delete is a real form so it works without JavaScript; the dialog in
+     partials/admin/delete-modal.blade.php is the courtesy on top. --}}
 @props(['label', 'editHref' => null, 'deleteAction' => null, 'align' => 'end'])
 
 <span class="flex items-center gap-[4px] {{ $align === 'center' ? 'justify-center' : 'justify-end' }}">
@@ -11,7 +12,7 @@
     @endif
 
     @if ($deleteAction)
-        <form action="{{ $deleteAction }}" method="post" onsubmit="return confirm('Delete {{ addslashes($label) }}? This cannot be undone.')">
+        <form action="{{ $deleteAction }}" method="post" data-confirm-delete="{{ $label }}">
             @csrf
             @method('DELETE')
             <button type="submit" aria-label="Delete {{ $label }}"

@@ -101,7 +101,7 @@
                            class="flex size-[28px] items-center justify-center rounded-[8px] transition-colors duration-300 hover:bg-[#f1f4f6]">
                             <img src="{{ asset('images/icons/admin/activity/action-edit.svg') }}" alt="" class="size-[13.5px]">
                         </a>
-                        <form action="{{ route('admin.activities.destroy', $activity) }}" method="post" onsubmit="return confirm('Delete {{ addslashes($activity->name) }}? This cannot be undone.')">
+                        <form action="{{ route('admin.activities.destroy', $activity) }}" method="post" data-confirm-delete="{{ $activity->name }}">
                             @csrf
                             @method('DELETE')
                             <button type="submit" aria-label="Delete {{ $activity->name }}"

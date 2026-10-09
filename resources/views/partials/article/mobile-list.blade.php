@@ -51,9 +51,6 @@
                 <img src="{{ asset('images/icons/mobile/article/featured.svg') }}" alt="" class="h-[9.5px] w-[10px]">
                 Featured Guide
             </span>
-            <span class="absolute right-[12px] top-[12px] flex size-[32px] items-center justify-center rounded-full bg-white/80 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1)] backdrop-blur-[2px]" aria-label="Bookmark this guide">
-                <img src="{{ asset('images/icons/mobile/article/bookmark.svg') }}" alt="" class="h-[12px] w-[9.3px]">
-            </span>
             <span class="absolute bottom-[12px] left-[12px] rounded-[6px] bg-[rgba(24,28,30,0.6)] px-[10px] py-[2px] text-[12px] font-medium leading-[16px] text-white backdrop-blur-[2px]">
                 {{ $featured['category'] }} • {{ $featured['readTime'] }}
             </span>
@@ -63,15 +60,15 @@
             <h2 class="text-[24px] font-semibold leading-[30px] text-[#181c1e]">{{ $featured['title'] }}</h2>
             <p class="mt-[8px] line-clamp-2 text-[16px] leading-[24px] text-[#414751]">{{ $featured['excerpt'] }}</p>
 
-            <div class="mt-[16px] flex items-center justify-between border-t border-[#ebeef0] pt-[17px]">
-                <span class="flex items-center gap-[10px]">
-                    <span class="flex size-[36px] items-center justify-center rounded-full bg-[#d2e4ff] text-[14px] font-bold leading-[20px] text-[#001d37]">{{ $initials($featured['author']) }}</span>
-                    <span>
-                        <span class="block text-[12px] font-semibold leading-[12px] text-[#181c1e]">{{ $featured['author'] }}</span>
-                        <span class="block text-[11px] leading-[24px] text-[#525c6f]">{{ $featured['author_role'] }}</span>
+            <div class="mt-[16px] flex items-center justify-between gap-[12px] border-t border-[#ebeef0] pt-[17px]">
+                <span class="flex min-w-0 items-center gap-[10px]">
+                    <span class="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#d2e4ff] text-[14px] font-bold leading-[20px] text-[#001d37]">{{ $initials($featured['author']) }}</span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-[13px] font-semibold leading-[18px] text-[#181c1e]">{{ $featured['author'] }}</span>
+                        <span class="block truncate text-[11px] leading-[16px] text-[#525c6f]">{{ $featured['author_role'] }}</span>
                     </span>
                 </span>
-                <span class="flex items-center gap-[4px] text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#005ea1]">
+                <span class="flex shrink-0 items-center gap-[6px] whitespace-nowrap text-[14px] font-semibold leading-[20px] tracking-[0.7px] text-[#005ea1]">
                     Read Guide
                     <img src="{{ asset('images/icons/mobile/article/arrow.svg') }}" alt="" class="size-[10.7px]">
                 </span>
@@ -81,12 +78,9 @@
     @endif
 
     {{-- Recent Articles (1:6077 + 1:6085) --}}
-    <div data-reveal class="flex items-center justify-between px-[20px] pb-[12px] pt-[8px]">
-        <div>
-            <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Recent Articles</h2>
-            <p class="text-[12px] leading-[16px] text-[#414751]">Curated stories and tactical travel dispatches</p>
-        </div>
-        <img src="{{ asset('images/icons/mobile/article/list.svg') }}" alt="" class="size-[18px]">
+    <div data-reveal class="px-[20px] pb-[12px] pt-[8px]">
+        <h2 class="text-[24px] font-semibold leading-[32px] text-[#181c1e]">Recent Articles</h2>
+        <p class="text-[12px] leading-[16px] text-[#414751]">Curated stories and tactical travel dispatches</p>
     </div>
 
     <div class="flex flex-col gap-[14px] px-[20px] pb-[32px]">
@@ -111,8 +105,8 @@
                     </div>
 
                     <div class="flex items-center justify-between pt-[4px]">
-                        <span class="text-[12px] font-medium leading-[16px] text-[#414751]">By {{ $article['author'] }}</span>
-                        <img src="{{ asset('images/icons/mobile/article/arrow.svg') }}" alt="" class="size-[10.7px]">
+                        <span class="min-w-0 truncate pr-[8px] text-[12px] font-medium leading-[16px] text-[#414751]">By {{ $article['author'] }}</span>
+                        <img src="{{ asset('images/icons/mobile/article/arrow.svg') }}" alt="" class="size-[10.7px] shrink-0">
                     </div>
                 </div>
             </a>

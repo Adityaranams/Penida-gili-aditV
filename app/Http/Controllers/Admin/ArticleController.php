@@ -53,8 +53,13 @@ class ArticleController extends Controller
     {
         $request->validate(['image' => ['required', 'image', 'max:10240']]);
 
+        // A root-relative path, not an absolute one: the body is stored as written,
+        // so a URL carrying this machine's host would break for every visitor
+        // reaching the site by any other address (a tunnel, the LAN, production).
+        $url = Storage::disk('public')->url(Uploads::store($request->file('image'), 'articles'));
+
         return response()->json([
-            'url' => Storage::disk('public')->url(Uploads::store($request->file('image'), 'articles')),
+            'url' => parse_url($url, PHP_URL_PATH) ?: $url,
         ]);
     }
 
