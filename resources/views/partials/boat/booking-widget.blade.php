@@ -50,7 +50,7 @@
                 Need a custom route or private charter?
             </p>
 
-            <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+            <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about a boat booking.') }}" target="_blank" rel="noopener"
                class="flex items-center justify-center bg-[#d5e2e9] px-[21px] py-[16px] text-[18.8px] font-bold leading-[27px] tracking-[0.94px] text-[#58646a]
                       transition-colors duration-300 hover:bg-[#c3d6e0]">
                 Contact Operator

@@ -38,7 +38,7 @@
             Book Now
         </a>
 
-        <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+        <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about the '.$activity['name'].' activity.') }}" target="_blank" rel="noopener"
            class="mt-[12px] flex items-center justify-center gap-[10.7px] rounded-[10.7px] border-2 border-brand bg-surface py-[16px] text-[21.4px] leading-[32px] text-brand
                   transition-colors duration-300 hover:bg-brand/5">
             <img src="{{ asset('images/icons/detail/whatsapp.svg') }}" alt="" class="size-[26.7px]">

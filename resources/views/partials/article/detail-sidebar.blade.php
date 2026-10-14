@@ -69,7 +69,7 @@
             Have questions about private boat charters, group discounts, or sea conditions? Chat directly with our port master.
         </p>
 
-        <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+        <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I have a question about boat charters and sea conditions.') }}" target="_blank" rel="noopener"
            class="flex items-center justify-center gap-[10px] rounded-[15.5px] border border-[#c0c7d3] bg-surface px-[22px] py-[14px] text-[20.7px] font-bold leading-[31px] text-editorial
                   transition-transform duration-300 ease-smooth hover:-translate-y-0.5">
             <img src="{{ asset('images/icons/article-detail/whatsapp.svg') }}" alt="" class="size-[21.5px]">

@@ -147,7 +147,7 @@
                 {!! $icon('M12 22V8m0 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM5 12H2a10 10 0 0 0 20 0h-3', 'size-[26px] text-brand') !!}
                 <p class="mt-[12px] text-[16px] font-semibold">Need a private boat?</p>
                 <p class="mt-[6px] text-[12px] leading-[18px] text-on-hero-muted">Charter a speed boat for your group, any time of day. Our team replies within minutes.</p>
-                <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about chartering a private speed boat.') }}" target="_blank" rel="noopener"
                    class="mt-[14px] inline-flex rounded-full bg-surface px-[14px] py-[7px] text-[12px] font-semibold text-ink hover:bg-white/90">Chat on WhatsApp →</a>
             </div>
         </aside>

@@ -27,9 +27,9 @@ return [
     'booking' => [
         // Where booking confirmations are BCC'd so the operations team sees new reservations.
         'notify_email' => env('BOOKING_NOTIFY_EMAIL'),
-        'whatsapp' => env('BOOKING_WHATSAPP', '6281236300562'),
+        'whatsapp' => env('BOOKING_WHATSAPP', '628213148787'),
         // "Book With Email" opens the guest's mail client addressed here.
-        'email' => env('BOOKING_EMAIL', 'adityarana916@gmail.com'),
+        'email' => env('BOOKING_EMAIL', 'penidagili@gmail.com'),
         'max_party' => 20,
         // Hotel rooms include this many adults; each extra adult is surcharged (per stay).
         'hotel_included_adults' => 2,

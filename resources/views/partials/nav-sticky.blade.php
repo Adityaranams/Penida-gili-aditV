@@ -46,7 +46,7 @@
             @endforeach
         </ul>
 
-        <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}" target="_blank" rel="noopener"
+        <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about your fast boat services.') }}" target="_blank" rel="noopener"
            class="flex h-[44px] w-[158px] items-center justify-center rounded-field bg-brand text-[15px] font-medium leading-[24px] text-on-brand
                   transition-[transform,box-shadow] duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand/30">
             Contact Us

@@ -40,7 +40,7 @@
                 Born out of a deep love for Indonesia's breathtaking archipelagos, we started this platform with a simple realization: exploring tropical islands should be as relaxing as the vacation itself.
             </p>
             <div class="mt-[24px] flex gap-[16px]">
-                <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ config('penida.booking.whatsapp') }}?text={{ rawurlencode('Hi Penida Gili, I would like to ask about your fast boat services.') }}" target="_blank" rel="noopener"
                    class="rounded-[8px] border border-[#e5e7eb] bg-white px-[24px] py-[10px] text-[16px] font-medium leading-[24px] text-[#0f172a]">Contact Us</a>
             </div>
         </div>
