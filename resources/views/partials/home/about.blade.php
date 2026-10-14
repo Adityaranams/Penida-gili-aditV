@@ -15,7 +15,7 @@
             </p>
 
             <div class="mt-[29px] lg:mt-[70px] flex flex-wrap gap-[24px]">
-                <a href="https://wa.me/6281236300562" target="_blank" rel="noopener"
+                <a href="https://wa.me/628213148787" target="_blank" rel="noopener"
                    class="flex h-[58px] w-[182px] items-center justify-center rounded-field border border-black/33 text-[16px] leading-[30px] text-ink
                           transition-[transform,background-color,border-color] duration-300 ease-smooth hover:-translate-y-0.5 hover:border-ink hover:bg-black/5">
                     Contact Us
