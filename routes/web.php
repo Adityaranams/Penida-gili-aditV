@@ -8,6 +8,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PrivacyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -33,6 +34,8 @@ Route::get('/artikel', [ArticleController::class, 'index'])->name('articles.inde
 Route::get('/artikel/{article}', [ArticleController::class, 'show'])->name('articles.show');
 
 Route::get('/booking/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+
+Route::get('/privacy', [PrivacyController::class, 'show'])->name('privacy');
 
 Route::post('/newsletter', [NewsletterController::class, 'store'])
     ->middleware('throttle:10,1')
@@ -93,5 +96,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/report', [Admin\ReportController::class, 'index'])->name('report');
         Route::get('/report/export', [Admin\ReportController::class, 'export'])->name('report.export');
         Route::patch('/report/{booking}', [Admin\ReportController::class, 'update'])->name('report.update');
+
+        Route::get('/setting', [Admin\SettingController::class, 'index'])->name('settings');
+        Route::put('/setting', [Admin\SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('/profile', [Admin\ProfileController::class, 'edit'])->name('profile');
+        Route::put('/profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        Route::get('/search', [Admin\SearchController::class, 'index'])->name('search');
+
+        Route::get('/notifications', [Admin\NotificationController::class, 'index'])->name('notifications');
+        Route::post('/notifications/seen', [Admin\NotificationController::class, 'seen'])->name('notifications.seen');
     });
 });

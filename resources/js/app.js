@@ -24,6 +24,8 @@ import './confirm-delete';
 import './radio-cards';
 import './rich-text';
 import './admin-transactions';
+import './admin-header';
+import './profile-modal';
 
 /**
  * Reveal elements as they scroll into view.

@@ -1,16 +1,14 @@
 {{-- Figma node 1:622 / 1:277 — Footer --}}
 @php
     $bookingLinks = [
-        'Our Story'     => '#',
-        'How We Help'   => '#',
-        'Boat  Pricing' => '#',
-        'Privacy Policy'=> '#',
+        'Our Story' => route('home').'#about',
+        'How We Help' => route('home').'#why',
+        'Boat Pricing' => route('boats.schedules'),
+        'Privacy Policy' => route('privacy'),
     ];
     $socials = [
-        'Dribbble'  => 'social-dribbble.svg',
-        'Behance'   => 'social-behance.svg',
-        'Instagram' => 'social-instagram.svg',
-        'Twitter'   => 'social-twitter.svg',
+        'Instagram' => ['icon' => 'social-instagram.svg', 'url' => 'https://www.instagram.com/penidagili'],
+        'YouTube'   => ['icon' => 'social-youtube.svg',   'url' => 'https://www.youtube.com'],
     ];
 @endphp
 
@@ -43,10 +41,10 @@
     </div>
 
     <ul class="mt-[10px] flex h-[54px] items-start gap-[16px]">
-        @foreach (['Website' => 'social-1.svg', 'Link' => 'social-2.svg', 'Share' => 'social-3.svg'] as $name => $icon)
+        @foreach ($socials as $name => $social)
             <li>
-                <a href="#" aria-label="{{ $name }}" class="flex size-[40px] items-center justify-center rounded-full bg-brand">
-                    <img src="{{ asset('images/icons/mobile/'.$icon) }}" alt="" class="size-[12px] object-contain">
+                <a href="{{ $social['url'] }}" target="_blank" rel="noopener" aria-label="{{ $name }}" class="block size-[40px]">
+                    <img src="{{ asset('images/icons/'.$social['icon']) }}" alt="" class="size-full">
                 </a>
             </li>
         @endforeach
@@ -112,11 +110,11 @@
             </form>
 
             <ul class="mt-[24px] lg:mt-[50px] flex items-center gap-[20px]">
-                @foreach ($socials as $name => $icon)
+                @foreach ($socials as $name => $social)
                     <li>
-                        <a href="#" aria-label="{{ $name }}"
+                        <a href="{{ $social['url'] }}" target="_blank" rel="noopener" aria-label="{{ $name }}"
                            class="block size-[54px] transition-transform duration-300 ease-smooth hover:-translate-y-1">
-                            <img src="{{ asset('images/icons/'.$icon) }}" alt="" class="size-full">
+                            <img src="{{ asset('images/icons/'.$social['icon']) }}" alt="" class="size-full">
                         </a>
                     </li>
                 @endforeach
@@ -129,7 +127,7 @@
             &copy; Copyright Penida Gili  {{ date('Y') }} | Design &amp; Develop 
             <a href="https://www.maiharta.com/" target="_blank" rel="noopener"class="text-black hover:text-blue-600 hover:underline transition">CV Maiharta</a>
             <span class="mx-[5px]">|</span>
-            <a href="http://localhost:8000/admin" target="_blank" rel="noopener"class="text-black hover:text-blue-600 hover:underline transition">Admin</a>
+            <a href="{{ route('admin.dashboard') }}" target="_blank" rel="noopener" class="text-black transition hover:text-blue-600 hover:underline">Admin</a>
         </p>
     </div>
 </footer>

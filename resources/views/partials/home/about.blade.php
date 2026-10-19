@@ -1,13 +1,13 @@
 {{-- Figma node 1:212 — About / "Your Bridge to Paradise" --}}
-<section class="container-page pt-[74px] lg:pt-[175px]">
-    <div class="grid [&>*]:min-w-0 gap-[52px] lg:grid-cols-[688px_347px_433px]">
+<section id="about" class="container-page scroll-mt-[120px] pt-[74px] lg:pt-[175px]">
+    <div class="grid [&>*]:min-w-0 gap-[52px] lg:gap-[44px] lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
         {{-- Copy --}}
         <div data-reveal>
             <p class="text-[20px] font-semibold uppercase leading-[30px] text-brand">About Us</p>
 
             <h2 class="mt-[50px] max-w-[727px] text-[30px] lg:text-[71px] leading-[53px] lg:leading-[118px] text-ink">Your Bridge to Paradise</h2>
 
-            <p class="mt-[39px] max-w-[678px] text-[16px] leading-[30px] text-ink-muted">
+            <p class="mt-[39px] max-w-[760px] text-[16px] leading-[30px] text-ink-muted lg:text-[19px] lg:leading-[36px]">
                 Born out of a deep love for Indonesia&rsquo;s breathtaking archipelagos, we started this platform with a
                 simple realization: exploring tropical islands should be as relaxing as the vacation itself. For years,
                 travelers faced confusing schedules, hidden harbor fees, and unreliable ticketing processes just to cross
@@ -25,7 +25,7 @@
 
         {{-- Portrait image --}}
         <div data-reveal style="--reveal-delay: 120ms"
-             class="group h-[251px] lg:h-auto lg:self-stretch w-full max-w-[347px] overflow-hidden rounded-card">
+             class="group h-[251px] w-full overflow-hidden rounded-card lg:h-auto lg:self-stretch">
             <img src="{{ asset('images/home/about-aerial.png') }}" alt="Aerial view of a fast boat"
                  class="size-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105">
         </div>

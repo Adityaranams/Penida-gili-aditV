@@ -1,0 +1,13 @@
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="settings">
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(0 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(45 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(90 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(135 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(180 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(225 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(270 11.0 11.0)" fill="#B1B1B1"/>
+<rect x="9.300" y="0.600" width="3.4" height="4.6" rx="1.1" transform="rotate(315 11.0 11.0)" fill="#B1B1B1"/>
+<path fill-rule="evenodd" clip-rule="evenodd" fill="#B1B1B1" d="M11 3.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6ZM11 7.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Z"/>
+</g>
+</svg>

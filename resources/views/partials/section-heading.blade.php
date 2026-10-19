@@ -9,6 +9,6 @@
 
     @if ($intro)
         <p data-reveal style="--reveal-delay: 120ms"
-           class="max-w-[585px] text-[16px] leading-[30px] text-ink-muted lg:self-end lg:pb-[60px]">{{ $intro }}</p>
+           class="max-w-[640px] text-[16px] leading-[30px] text-ink-muted lg:text-[19px] lg:leading-[34px] lg:self-end lg:pb-[60px]">{{ $intro }}</p>
     @endif
 </div>

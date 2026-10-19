@@ -257,6 +257,11 @@ class ConsoleCrudTest extends TestCase
         foreach ($screens as $route => $requestClass) {
             $html = $this->actingAs($this->admin)->get(route($route))->assertOk()->getContent();
 
+            // The layout's dialogs (delete confirmation, account) ride on every
+            // screen and answer to their own requests, so they are not part of
+            // what this screen posts.
+            $html = (string) preg_replace('/<dialog\b.*?<\/dialog>/s', '', $html);
+
             // Every posted field is covered by the form request. The rule keys are read from the
             // source: resolving a FormRequest out of the container would validate this GET request.
             preg_match_all('/<(?:input|select|textarea)[^>]*\bname="([a-z_]+)(\[\])?"/', $html, $matches);

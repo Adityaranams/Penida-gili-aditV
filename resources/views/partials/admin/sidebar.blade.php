@@ -8,6 +8,7 @@
         'hotel'     => ['label' => 'Hotel',          'icon' => 'nav-hotel.svg',     'route' => route('admin.hotels')],
         'article'   => ['label' => 'Article',        'icon' => 'nav-article.svg',   'route' => route('admin.articles')],
         'report'    => ['label' => 'Booking Report', 'icon' => 'nav-report.svg',    'route' => route('admin.report')],
+        'setting'   => ['label' => 'Setting',        'icon' => 'nav-settings.svg',  'route' => route('admin.settings')],
     ];
 
     $current = trim($__env->yieldContent('admin-active')) ?: 'dashboard';

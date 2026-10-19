@@ -24,19 +24,23 @@
                 </div>
 
                 <div class="flex items-center gap-[20px]">
-                    <label class="relative block w-[427px] max-w-full">
-                        <span class="sr-only">Search</span>
-                        <input type="search" placeholder="Search"
-                               class="h-[58.7px] w-full rounded-admin-pill bg-admin-field pl-[24px] pr-[56px] text-[21.3px] text-admin-ink placeholder:text-admin-nav focus:outline-2 focus:outline-editorial">
-                        <img src="{{ asset('images/icons/admin/search.svg') }}" alt=""
-                             class="pointer-events-none absolute right-[24px] top-1/2 size-[20px] -translate-y-1/2">
-                    </label>
+                    {{-- Screens that are only ever reached from a menu say
+                         @section('hide-search'); searching from them would
+                         throw away what the person came there to do. --}}
+                    @unless (trim($__env->yieldContent('hide-search')))
+                        <form action="{{ route('admin.search') }}" method="get" role="search" class="relative block w-[427px] max-w-full">
+                            <label for="console-search" class="sr-only">Search</label>
+                            <input id="console-search" type="search" name="q" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}"
+                                   placeholder="Search boats, hotels, bookings…"
+                                   class="h-[58.7px] w-full rounded-admin-pill bg-admin-field pl-[24px] pr-[56px] text-[18px] text-admin-ink placeholder:text-admin-nav focus:outline-2 focus:outline-editorial">
+                            <button type="submit" aria-label="Search"
+                                    class="absolute right-[12px] top-1/2 flex size-[36px] -translate-y-1/2 items-center justify-center rounded-full transition-colors duration-300 hover:bg-editorial-rule">
+                                <img src="{{ asset('images/icons/admin/search.svg') }}" alt="" class="size-[20px]">
+                            </button>
+                        </form>
+                    @endunless
 
-                    <button type="button" aria-label="Notifications"
-                            class="relative flex size-[58.7px] items-center justify-center rounded-full bg-admin-field transition-colors duration-300 hover:bg-editorial-rule">
-                        <img src="{{ asset('images/icons/admin/bell.svg') }}" alt="" class="size-[22px]">
-                        <span class="absolute right-[18px] top-[17px] size-[8px] rounded-full bg-[#e11d48]"></span>
-                    </button>
+                    @include('partials.admin.header-menus')
                 </div>
             </header>
 
@@ -48,5 +52,6 @@
     </div>
 
     @include('partials.admin.delete-modal')
+    @include('partials.admin.profile-modal')
 </body>
 </html>

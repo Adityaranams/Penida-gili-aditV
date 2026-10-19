@@ -8,7 +8,7 @@
     ];
 @endphp
 
-<section class="container-page pt-[74px] lg:pt-[175px]">
+<section id="why" class="container-page scroll-mt-[120px] pt-[74px] lg:pt-[175px]">
     @include('partials.section-heading', [
         'eyebrow' => 'Why Book With Us',
         'title'   => 'Why Booking with <br>Us?',
