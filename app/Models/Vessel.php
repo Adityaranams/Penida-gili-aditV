@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
     'boat_operator_id', 'name', 'code', 'type', 'description', 'capacity', 'rating', 'top_speed_knots', 'engine',
-    'facilities', 'image', 'gallery', 'status', 'inspected_at',
+    'facilities', 'safety_equipment', 'image', 'gallery', 'status', 'inspected_at',
 ])]
 class Vessel extends Model
 {
@@ -27,6 +27,7 @@ class Vessel extends Model
         return [
             'rating' => 'decimal:1',
             'facilities' => 'array',
+            'safety_equipment' => 'array',
             'gallery' => 'array',
             'status' => ListingStatus::class,
             'inspected_at' => 'date',

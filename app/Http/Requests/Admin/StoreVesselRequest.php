@@ -17,7 +17,7 @@ class StoreVesselRequest extends FormRequest
             'name' => ['required', 'string', 'max:120'],
             'code' => ['nullable', 'string', 'max:20', Rule::unique('vessels', 'code')->ignore($vesselId)],
             'type' => ['required', 'string', 'max:80'],
-            'description' => ['nullable', 'string', 'max:400'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'capacity' => ['required', 'integer', 'min:1', 'max:1000'],
             'rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
             'top_speed_knots' => ['nullable', 'integer', 'min:1', 'max:80'],
@@ -25,6 +25,8 @@ class StoreVesselRequest extends FormRequest
             'status' => ['required', Rule::enum(ListingStatus::class)],
             'facilities' => ['nullable', 'array'],
             'facilities.*' => ['string', 'max:60'],
+            // Chips arrive as one comma separated string, like the activity editor's.
+            'safety_equipment' => ['nullable', 'string', 'max:2000'],
             'cover' => ['nullable', 'image', 'max:4096'],
             'photos' => ['nullable', 'array', 'max:8'],
             'photos.*' => ['image', 'max:4096'],

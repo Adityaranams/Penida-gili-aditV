@@ -25,6 +25,7 @@ import './radio-cards';
 import './rich-text';
 import './admin-transactions';
 import './admin-header';
+import './char-count';
 import './profile-modal';
 
 /**

@@ -479,7 +479,7 @@ class CatalogManagementTest extends TestCase
                 'Save Draft', 'Publish Activity',
                 'Basic Information', 'Short Catchy Tagline / Badge', 'Full Description',
                 'Schedule & Operational Hours', 'Select All Days', 'Instant Confirmation', 'Cancellation Policy',
-                'Inclusions &amp; Important Info', '+ Add inclusion...', '+ Add exclusion...', 'Important Info',
+                'Inclusions & Important Info', '+ Add inclusion...', '+ Add exclusion...', 'Important Info',
                 'Cover Photo', 'Media & Gallery Upload', '/ 8 Photos',
                 'Publishing Status', 'Public Visibility',
                 'Pricing & Quota Capacity', 'Original / Strikethrough Price', 'Max Daily Capacity / Quota', 'pax / day',

@@ -14,6 +14,10 @@
     'step' => null,
     'min' => null,
     'max' => null,
+    // Characters the server will accept. Shows a live counter; nothing is cut
+    // off while typing or pasting, so over-long text can still be edited down
+    // rather than silently truncated.
+    'limit' => null,
 ])
 
 @php
@@ -48,7 +52,9 @@
                  class="pointer-events-none absolute right-[12px] top-1/2 size-[24px] -translate-y-1/2">
         </span>
     @elseif ($type === 'textarea')
-        <textarea name="{{ $name }}" rows="4" placeholder="{{ $placeholder }}" @required($required) class="{{ $control }}">{{ $current }}</textarea>
+        <textarea name="{{ $name }}" rows="4" placeholder="{{ $placeholder }}" @required($required)
+                  @if ($limit) data-char-count="{{ $limit }}" @endif
+                  class="{{ $control }}">{{ $current }}</textarea>
     @elseif ($prefix)
         <span class="flex items-center rounded-[8px] border {{ $errors->has($key) ? 'border-[#dc2626]' : 'border-[rgba(192,199,211,0.5)]' }} bg-[#f7fafc] pl-[17px]">
             <span class="font-jakarta text-[16px] leading-[24px] text-editorial-body">{{ $prefix }}</span>
@@ -63,8 +69,14 @@
                class="{{ $control }}">
     @endif
 
-    @if ($help)
-        <span class="font-jakarta text-[13px] leading-[18px] text-editorial-body">{{ $help }}</span>
+    @if ($help || $limit)
+        <span class="flex items-start justify-between gap-[12px]">
+            <span class="font-jakarta text-[13px] leading-[18px] text-editorial-body">{{ $help }}</span>
+            @if ($limit)
+                <span data-char-count-for="{{ $name }}"
+                      class="shrink-0 font-jakarta text-[13px] leading-[18px] tabular-nums text-editorial-body">{{ mb_strlen((string) $current) }} / {{ $limit }}</span>
+            @endif
+        </span>
     @endif
 
     @error($key)

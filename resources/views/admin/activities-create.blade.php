@@ -133,7 +133,7 @@
                 </x-admin.panel>
 
                 {{-- 3. Inclusions & Important Info (1:8695) — the two tabs of the same name on the activity page --}}
-                <x-admin.panel title="Inclusions &amp; Important Info" description="Fills the Inclusions and Important Info tabs on the activity page" icon="form-check.svg">
+                <x-admin.panel title="Inclusions & Important Info" description="Fills the Inclusions and Important Info tabs on the activity page" icon="form-check.svg">
                     <div class="flex flex-col gap-[20px]">
                         @foreach (['included' => ["Inclusions — What's Included", '+ Add inclusion...', 'bg-editorial/10 text-editorial'], 'excluded' => ["Inclusions — What's Excluded", '+ Add exclusion...', 'bg-[#fee2e2] text-[#991b1b]']] as $field => [$label, $placeholder, $tone])
                             <div class="flex flex-col gap-[8px]" data-keywords data-chip-class="{{ $tone }}">

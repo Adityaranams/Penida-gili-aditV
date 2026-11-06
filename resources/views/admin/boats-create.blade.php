@@ -45,7 +45,7 @@
                     <div class="md:col-span-2">
                         <x-admin.field label="Short Description" name="description" type="textarea" :value="$vessel->description"
                                        placeholder="One or two sentences about this boat, shown on its card."
-                                       help="Belongs to this boat only &mdash; it is never taken from the operator." />
+                                       help="Belongs to this boat only — it is never taken from the operator." :limit="1000" />
                     </div>
 
                     {{-- Operational state; "Save as Draft" above overrides it while the boat is unpublished. --}}
@@ -97,6 +97,24 @@
                             <span class="font-jakarta text-[16px] leading-[24px] text-editorial-ink">{{ $facility['label'] }}</span>
                         </label>
                     @endforeach
+                </div>
+            </x-admin.form-section>
+
+            {{-- Free-text gear, unlike the fixed Facilities tick-list above: what a
+                 boat carries and how the operator words it differs per vessel. --}}
+            <x-admin.form-section title="Advanced Safety Equipment" icon="form-check.svg">
+                <div class="flex flex-col gap-[8px]" data-keywords data-chip-class="bg-editorial/10 text-editorial">
+                    <input type="hidden" name="safety_equipment"
+                           value="{{ implode(', ', old('safety_equipment') ? array_map('trim', explode(',', old('safety_equipment'))) : ($vessel->safety_equipment ?? [])) }}">
+                    <div class="flex flex-wrap items-center gap-[8px] rounded-[8px] border border-[rgba(192,199,211,0.5)] bg-[#f7fafc] px-[12px] py-[8px] focus-within:border-editorial">
+                        <span class="contents" data-keywords-list></span>
+                        <input type="text" placeholder="+ Add equipment..." autocomplete="off"
+                               class="min-w-[180px] flex-1 bg-transparent py-[5px] font-jakarta text-[14px] leading-[20px] text-editorial-ink placeholder:text-editorial-meta focus:outline-none">
+                    </div>
+                    <span class="font-jakarta text-[13px] leading-[18px] text-editorial-body">
+                        Listed on the boat page. For example: Life Rafts, EPIRB Beacon, Fire Suppression System, First Aid Kit.
+                    </span>
+                    @error('safety_equipment') <span class="font-jakarta text-[13px] text-[#dc2626]">{{ $message }}</span> @enderror
                 </div>
             </x-admin.form-section>
 

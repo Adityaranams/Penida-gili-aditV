@@ -31,6 +31,10 @@ class StoreScheduleRequest extends FormRequest
             $merge['status'] = $this->input('publish') === 'draft' ? ListingStatus::Draft->value : ListingStatus::Active->value;
         }
 
+        // An unticked switch posts nothing at all, so the flag has to be
+        // settled here or editing could never turn Popular back off.
+        $merge['is_popular'] = $this->boolean('is_popular');
+
         $this->merge($merge);
     }
 
@@ -52,6 +56,7 @@ class StoreScheduleRequest extends FormRequest
             'days' => ['nullable', 'array'],
             'days.*' => [Rule::in(Schedule::DAYS)],
             'status' => ['required', Rule::enum(ListingStatus::class)],
+            'is_popular' => ['boolean'],
         ];
     }
 

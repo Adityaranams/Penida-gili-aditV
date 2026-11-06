@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 
 #[Fillable([
     'boat_operator_id', 'vessel_id', 'from_port_id', 'to_port_id', 'departure_time', 'arrival_time',
-    'price_adult', 'price_child', 'price_foreign', 'price_foreign_child', 'days', 'status',
+    'price_adult', 'price_child', 'price_foreign', 'price_foreign_child', 'days', 'status', 'is_popular',
 ])]
 class Schedule extends Model
 {
@@ -28,6 +28,7 @@ class Schedule extends Model
     {
         return [
             'days' => 'array',
+            'is_popular' => 'boolean',
             'status' => ListingStatus::class,
             'price_adult' => 'integer',
             'price_child' => 'integer',

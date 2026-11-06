@@ -156,8 +156,9 @@ class VesselController extends Controller
     /** @return array<string, mixed> */
     private function payload(StoreVesselRequest $request, ?Vessel $vessel = null): array
     {
-        $data = $request->safe()->except(['cover', 'photos', 'remove_photos', 'testimonials', 'code', 'publish']);
+        $data = $request->safe()->except(['cover', 'photos', 'remove_photos', 'testimonials', 'code', 'publish', 'safety_equipment']);
         $data['facilities'] = $request->input('facilities', []);
+        $data['safety_equipment'] = $this->chips($request->input('safety_equipment'));
 
         // "Save as Draft" hides the boat regardless of the operational status picked below it.
         $data['status'] = $request->input('publish') === 'draft'
@@ -182,5 +183,23 @@ class VesselController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Split the safety-equipment chips into a list.
+     *
+     * Chips post comma separated; text pasted from a spec sheet may still be
+     * one item per line, so both separators are accepted.
+     *
+     * @return list<string>
+     */
+    private function chips(?string $text): array
+    {
+        return collect(preg_split('/[
+,]+/', (string) $text))
+            ->map(fn (string $line) => trim($line))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

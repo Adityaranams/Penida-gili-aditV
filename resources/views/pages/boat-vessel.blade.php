@@ -73,6 +73,25 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- Safety gear the operator entered for this boat. Hidden entirely
+                     when empty: an empty "Safety Equipment" heading reads worse
+                     than none at all. --}}
+                @if ($vessel->safety_equipment)
+                    <div data-reveal style="--reveal-delay: 220ms" class="mt-[24px] rounded-detail bg-surface p-[28px] shadow-detail">
+                        <h3 class="pb-[10px] text-[28px] font-semibold leading-[38px] text-editorial-ink">Advanced Safety Equipment</h3>
+
+                        <ul class="grid gap-[16px] sm:grid-cols-2">
+                            @foreach ($vessel->safety_equipment as $item)
+                                <li class="flex items-start gap-[10px] text-[19px] leading-[30px] text-editorial-body">
+                                    <img src="{{ asset('images/icons/vessel/insurance.svg') }}" alt=""
+                                         class="mt-[4px] size-[22px] shrink-0 object-contain">
+                                    {{ $item }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </section>
 
             {{-- Gallery: only what was uploaded for this boat --}}
@@ -156,7 +175,20 @@
                 @else
                     <ul class="mt-[20px] space-y-[20px]">
                         @foreach ($vessel->schedules as $schedule)
-                            <li class="rounded-[11px] border border-editorial-rule p-[20px]">
+                            <li @class([
+                                    'rounded-[11px] border p-[20px]',
+                                    'border-brand bg-brand/[0.04]' => $schedule->is_popular,
+                                    'border-editorial-rule' => ! $schedule->is_popular,
+                                ])>
+                                {{-- Staff tick "Popular" on the schedule in the console; nothing
+                                     here is positional, so an unticked list shows no badge. --}}
+                                @if ($schedule->is_popular)
+                                    <p class="mb-[14px] inline-flex items-center gap-[6px] rounded-full bg-brand/10 px-[10px] py-[4px] text-[13px] font-semibold leading-[18px] text-brand">
+                                        <img src="{{ asset('images/icons/vessel/popular-thumb.svg') }}" alt="" class="size-[14px]">
+                                        Popular
+                                    </p>
+                                @endif
+
                                 <div class="flex items-center gap-[8px]">
                                     <div class="min-w-0 shrink">
                                         <p class="truncate text-[17px] font-bold leading-[26px] text-editorial-ink">{{ $schedule->fromPort->name }}</p>

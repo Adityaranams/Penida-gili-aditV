@@ -96,6 +96,14 @@
             <aside class="flex flex-col gap-[16px] lg:sticky lg:top-8 lg:self-start">
                 <x-admin.panel title="Publishing Settings" icon="nav-schedule.svg">
                     <x-admin.radio-cards name="publish" :options="$publishModes" :selected="$isDraft ? 'draft' : 'publish'" />
+
+                    <div class="mt-[20px] border-t border-[rgba(192,199,211,0.3)] pt-[20px]">
+                        <x-admin.toggle
+                            name="is_popular"
+                            label="Mark as Popular"
+                            description="Shows a thumbs-up Popular badge on this sailing in Routes & Schedule."
+                            :checked="(bool) old('is_popular', $schedule->is_popular)" />
+                    </div>
                 </x-admin.panel>
 
                 {{-- High Season Alert (1:7448) --}}
